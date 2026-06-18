@@ -1,0 +1,131 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\CategoryType;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class CategoryTranslation extends Model implements HasMedia
+{
+    use InteractsWithMedia;
+
+    protected $fillable = [
+        'category_id',
+        'locale',
+        'slug',
+        'name',
+        'description',
+        'seo_title',
+        'seo_description',
+        'og_title',
+        'og_description',
+        'canonical_url',
+        'meta_robots',
+        'is_published',
+    ];
+
+    protected $casts = [
+        'is_published' => 'boolean',
+    ];
+
+    protected $appends = [
+        'public_url',
+        'meta_title',
+        'meta_description',
+    ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (CategoryTranslation $translation): void {
+            if (filled($translation->slug) || blank($translation->name)) {
+                $translation->slug = $translation->slug ? trim($translation->slug, '/') : null;
+
+                return;
+            }
+
+            $translation->slug = static::uniqueSlug(
+                Str::slug($translation->name),
+                $translation->locale,
+                $translation->getKey()
+            );
+        });
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('thumbnail')->useDisk('public')->singleFile();
+        $this->addMediaCollection('hero')->useDisk('public')->singleFile();
+        $this->addMediaCollection('og_image')->useDisk('public')->singleFile();
+    }
+
+    public function getPublicUrlAttribute(): string
+    {
+        $defaultLocale = config('locales.default', 'vi');
+        $locale = $this->locale ?: $defaultLocale;
+        $type = $this->category?->type;
+
+        $path = match ($type) {
+            CategoryType::Product->value => $locale === 'vi'
+                ? 'san-pham/' . $this->slug
+                : 'products/' . $this->slug,
+            CategoryType::Post->value => $locale === 'vi'
+                ? 'tin-tuc/' . $this->slug
+                : 'news/' . $this->slug,
+            CategoryType::Service->value => $locale === 'vi'
+                ? 'dich-vu/' . $this->slug
+                : 'services/' . $this->slug,
+            default => 'categories/' . $this->slug,
+        };
+
+        return $locale === $defaultLocale
+            ? url('/' . $path)
+            : url('/' . $locale . '/' . $path);
+    }
+
+    public function getMetaTitleAttribute(): string
+    {
+        return $this->seo_title ?: $this->name;
+    }
+
+    public function getMetaDescriptionAttribute(): ?string
+    {
+        return $this->seo_description ?: $this->description;
+    }
+
+    public function scopeLocale(Builder $query, ?string $locale = null): Builder
+    {
+        return $query->where('locale', $locale ?: app()->getLocale());
+    }
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('is_published', true);
+    }
+
+    private static function uniqueSlug(string $slug, string $locale, int | string | null $ignoreId = null): string
+    {
+        $slug = $slug ?: 'category';
+        $baseSlug = $slug;
+        $suffix = 2;
+
+        while (static::query()
+            ->where('locale', $locale)
+            ->where('slug', $slug)
+            ->when($ignoreId, fn (Builder $query): Builder => $query->whereKeyNot($ignoreId))
+            ->exists()) {
+            $slug = $baseSlug . '-' . $suffix++;
+        }
+
+        return $slug;
+    }
+}

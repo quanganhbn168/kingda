@@ -1,0 +1,14 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+.menu-builder-page input,
+.menu-builder-page select,
+.menu-builder-page textarea {
+    width: 100%;
+}
+
+.menu-builder-page textarea {
+    resize: vertical;
+}

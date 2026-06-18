@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Services\Frontend;
+
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductTranslation;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+
+class ProductCatalogService
+{
+    public function categories(string $locale)
+    {
+        $categories = Category::query()
+            ->product()
+            ->active()
+            ->whereHas('translations', fn (Builder $query) => $query
+                ->where('locale', $locale)
+                ->where('is_published', true))
+            ->with([
+                'translation' => fn ($query) => $query->where('locale', $locale),
+                'children',
+            ])
+            ->withCount([
+                'products' => fn (Builder $query) => $query
+                    ->active()
+                    ->withPublishedTranslation($locale),
+            ])
+            ->ordered()
+            ->get();
+
+        $categories->each(function (Category $category) use ($locale): void {
+            $category->products_count = Product::query()
+                ->active()
+                ->withPublishedTranslation($locale)
+                ->whereIn('category_id', $category->descendantsAndSelfIds())
+                ->count();
+        });
+
+        return $categories
+            ->filter(fn (Category $category): bool => $category->products_count > 0)
+            ->values();
+    }
+
+    public function listing(Request $request, string $locale, ?string $categorySlug = null): array
+    {
+        $activeCategorySlug = $categorySlug ?: $request->string('category')->toString();
+        $categories = $this->categories($locale);
+        $activeCategory = $activeCategorySlug
+            ? $categories->first(fn (Category $category): bool => $category->translation?->slug === $activeCategorySlug)
+            : null;
+
+        $products = Product::query()
+            ->active()
+            ->withPublishedTranslation($locale)
+            ->when($activeCategory, fn (Builder $query) => $query->whereIn('category_id', $activeCategory->descendantsAndSelfIds()))
+            ->with([
+                'translation' => fn ($query) => $query->where('locale', $locale),
+                'translation.media',
+                'category.translation' => fn ($query) => $query->where('locale', $locale),
+            ])
+            ->ordered()
+            ->paginate(12)
+            ->withQueryString();
+
+        return [
+            'categories' => $categories,
+            'activeCategory' => $activeCategory,
+            'products' => $products,
+            'totalProductsCount' => Product::query()
+                ->active()
+                ->withPublishedTranslation($locale)
+                ->count(),
+        ];
+    }
+
+    public function detail(string $locale, string $categorySlug, string $productSlug): array
+    {
+        $translation = ProductTranslation::query()
+            ->published()
+            ->locale($locale)
+            ->slug($productSlug)
+            ->whereHas('product.category.translations', fn (Builder $query) => $query
+                ->where('locale', $locale)
+                ->where('slug', $categorySlug)
+                ->where('is_published', true))
+            ->with([
+                'product.category.translations',
+                'product.translations',
+                'media',
+            ])
+            ->firstOrFail();
+
+        $product = $translation->product;
+
+        abort_if(! $product || ! $product->is_active, 404);
+
+        $categoryTranslation = $product->category?->translations->firstWhere('locale', $locale);
+
+        return [
+            'product' => $product,
+            'translation' => $translation,
+            'categoryTranslation' => $categoryTranslation,
+            'relatedProducts' => $this->relatedProducts($product, $locale),
+        ];
+    }
+
+    private function relatedProducts(Product $product, string $locale)
+    {
+        return Product::query()
+            ->active()
+            ->withPublishedTranslation($locale)
+            ->whereKeyNot($product->id)
+            ->when($product->category_id, fn (Builder $query) => $query->where('category_id', $product->category_id))
+            ->with([
+                'translation' => fn ($query) => $query->where('locale', $locale),
+                'translation.media',
+                'category.translation' => fn ($query) => $query->where('locale', $locale),
+            ])
+            ->ordered()
+            ->limit(3)
+            ->get();
+    }
+}

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,14 +14,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::firstOrCreate([
-            'email' => 'admin@example.com',
-        ], [
-            'name' => 'Super Admin',
-            'password' => bcrypt('admin123'),
+        $this->call([
+            SuperAdminSeeder::class,
+            KingdaHomeSeeder::class,
+            KingdaProductCatalogSeeder::class,
+            KingdaNewsSeeder::class,
         ]);
-
-        // Cấp quyền super_admin của Filament Shield
-        $admin->assignRole('super_admin');
     }
 }
