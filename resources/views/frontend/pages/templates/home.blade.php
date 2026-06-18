@@ -333,7 +333,7 @@
                                                                 <a href="{{ $product['url'] ?? ($group['url'] ?? $productIndexUrl) }}"
                                                                     class="group flex h-full flex-col overflow-hidden rounded-2xl bg-white text-slate-950 shadow-lg shadow-slate-200/70 ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-300/70 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white">
 
-                                                                    <div class="relative h-48 overflow-hidden bg-red-50">
+                                                                    <div class="relative aspect-[4/3] overflow-hidden bg-red-50">
                                                                         @if (!empty($product['image']))
                                                                             <img src="{{ $product['image'] }}"
                                                                                 alt="{{ $product['title'] ?? '' }}"
