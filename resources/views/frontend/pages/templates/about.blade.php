@@ -435,31 +435,50 @@
 
 
         {{-- PARTNERS --}}
+        @php
+            $homeCustomers = $sharedHomeSettings['customers'] ?? [];
+            $homeCustomerItems = collect($homeCustomers['items'] ?? [])->filter(fn ($item) => filled($item['name'] ?? null));
+        @endphp
+
         <section class="about-section about-partners">
             <div class="about-container">
                 <div class="about-section-head about-section-head--center" data-aos="fade-up">
-                    <div class="about-section-label">Khách hàng & đối tác</div>
+                    <div class="about-section-label">{{ $homeCustomers['eyebrow'] ?? 'Khách hàng & đối tác' }}</div>
 
                     <h2>
-                        Hợp tác cùng các thương hiệu và chuỗi cung ứng công nghệ
+                        {{ $homeCustomers['title'] ?? 'Hợp tác cùng các thương hiệu và chuỗi cung ứng công nghệ' }}
                     </h2>
 
                     <p>
-                        Sản phẩm của Kingda được ứng dụng trong nhiều nhóm khách hàng thuộc lĩnh vực
-                        điện tử 3C, linh kiện ô tô và vật liệu công nghiệp.
+                        {{ $homeCustomers['description'] ?? 'Sản phẩm của Kingda được ứng dụng trong nhiều nhóm khách hàng thuộc lĩnh vực điện tử 3C, linh kiện ô tô và vật liệu công nghiệp.' }}
                     </p>
                 </div>
 
-                <div class="about-partners__grid" data-aos="fade-up">
-                    <div>Huawei</div>
-                    <div>Xiaomi</div>
-                    <div>BOE</div>
-                    <div>Lens</div>
-                    <div>OFILM</div>
-                    <div>BYD</div>
-                    <div>OPPO</div>
-                    <div>VIVO</div>
-                </div>
+                @if($homeCustomerItems->isNotEmpty())
+                    <div class="about-partners__grid" data-aos="fade-up">
+                        @foreach($homeCustomerItems as $item)
+                            @php($itemUrl = $item['url'] ?? null)
+
+                            @if($itemUrl)
+                                <a href="{{ $itemUrl }}" class="about-partners__item" aria-label="{{ $item['name'] }}" target="_blank" rel="noopener">
+                            @else
+                                <div class="about-partners__item">
+                            @endif
+
+                            @if(! empty($item['logo']))
+                                <img src="{{ $item['logo'] }}" alt="{{ $item['name'] }}">
+                            @else
+                                <span>{{ $item['name'] }}</span>
+                            @endif
+
+                            @if($itemUrl)
+                                </a>
+                            @else
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </section>
 
@@ -1198,7 +1217,7 @@
             gap: 16px;
         }
 
-        .about-partners__grid div {
+        .about-partners__item {
             display: flex;
             min-height: 96px;
             align-items: center;
@@ -1210,6 +1229,21 @@
             font-weight: 900;
             background: linear-gradient(180deg, #fff, #f7fbff);
             box-shadow: 0 14px 44px rgba(15, 45, 90, .06);
+            text-align: center;
+            text-decoration: none;
+            transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+        }
+
+        .about-partners__item:hover {
+            transform: translateY(-4px);
+            border-color: rgba(215, 25, 32, .26);
+            box-shadow: 0 20px 54px rgba(15, 45, 90, .10);
+        }
+
+        .about-partners__item img {
+            max-width: 148px;
+            max-height: 52px;
+            object-fit: contain;
         }
 
         /* CTA */

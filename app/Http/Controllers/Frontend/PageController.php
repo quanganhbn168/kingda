@@ -395,12 +395,22 @@ class PageController extends Controller
         $settings = app(AboutSettings::class);
 
         return [
-            'hero' => LocalizedContent::block($settings->hero, $locale),
+            'hero' => [
+                ...LocalizedContent::block($settings->hero, $locale),
+                'image' => LocalizedContent::mediaUrl($settings->hero['image'] ?? null),
+            ],
             'intro' => [
                 ...LocalizedContent::block($settings->intro, $locale),
                 'image' => LocalizedContent::mediaUrl($settings->intro['image'] ?? null),
+                'small_image_one' => LocalizedContent::mediaUrl($settings->intro['small_image_one'] ?? null),
+                'small_image_two' => LocalizedContent::mediaUrl($settings->intro['small_image_two'] ?? null),
                 'video_upload' => LocalizedContent::mediaUrl($settings->intro['video_upload'] ?? null),
                 'video_embed_url' => $settings->intro['video_embed_url'] ?? null,
+                'stats' => LocalizedContent::items($settings->intro['stats'] ?? [], $locale),
+            ],
+            'development' => [
+                ...LocalizedContent::block($settings->development, $locale),
+                'items' => LocalizedContent::items($settings->development['items'] ?? [], $locale),
             ],
             'timeline' => [
                 ...LocalizedContent::block($settings->timeline, $locale),
@@ -409,6 +419,30 @@ class PageController extends Controller
             'culture' => [
                 ...LocalizedContent::block($settings->culture, $locale),
                 'items' => LocalizedContent::items($settings->culture['items'] ?? [], $locale),
+            ],
+            'capabilities' => [
+                ...LocalizedContent::block($settings->capabilities, $locale),
+                'items' => collect($settings->capabilities['items'] ?? [])
+                    ->map(fn (array $item): array => [
+                        ...LocalizedContent::items([$item], $locale)[0],
+                        'image' => LocalizedContent::mediaUrl($item['image'] ?? null),
+                    ])
+                    ->all(),
+            ],
+            'certificates' => [
+                ...LocalizedContent::block($settings->certificates, $locale),
+                'items' => LocalizedContent::items($settings->certificates['items'] ?? [], $locale),
+            ],
+            'intellectual_property' => [
+                'items' => LocalizedContent::items($settings->intellectual_property['items'] ?? [], $locale),
+            ],
+            'customers' => [
+                ...LocalizedContent::block($settings->customers, $locale),
+                'items' => $settings->customers['items'] ?? [],
+            ],
+            'contact' => [
+                ...LocalizedContent::block($settings->contact, $locale),
+                'button_url' => $settings->contact['button_url'] ?? null,
             ],
         ];
     }
