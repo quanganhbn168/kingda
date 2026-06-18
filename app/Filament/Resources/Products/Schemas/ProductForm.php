@@ -17,9 +17,12 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class ProductForm
@@ -28,275 +31,315 @@ class ProductForm
     {
         return $schema
             ->components([
-                Section::make('Thông tin sản phẩm')
-                    ->columns(2)
-                    ->schema([
-                        Select::make('category_id')
-                            ->label('Danh mục')
-                            ->options(fn (): array => Category::query()
-                                ->where('type', CategoryType::Product->value)
-                                ->with('translation')
-                                ->ordered()
-                                ->get()
-                                ->mapWithKeys(fn (Category $category): array => [
-                                    $category->id => $category->translation?->name ?: 'Danh mục #' . $category->id,
-                                ])
-                                ->all())
-                            ->searchable()
-                            ->preload(),
-                        TextInput::make('sku')
-                            ->label('SKU')
-                            ->maxLength(255),
-                        TextInput::make('price')
-                            ->label('Giá')
-                            ->numeric()
-                            ->prefix('₫'),
-                        TextInput::make('sale_price')
-                            ->label('Giá khuyến mãi')
-                            ->numeric()
-                            ->prefix('₫'),
-                        TextInput::make('unit')
-                            ->label('Đơn vị')
-                            ->maxLength(255),
-                        TextInput::make('sort_order')
-                            ->label('Thứ tự')
-                            ->required()
-                            ->numeric()
-                            ->default(0),
-                        Toggle::make('is_featured')
-                            ->label('Nổi bật')
-                            ->required(),
-                        Toggle::make('is_active')
-                            ->label('Kích hoạt')
-                            ->required(),
-                    ]),
-                Repeater::make('translations')
-                    ->label('Nội dung đa ngôn ngữ')
-                    ->relationship()
-                    ->itemLabel(fn (array $state): ?string => collect([
-                        Locale::labelFor($state['locale'] ?? null),
-                        $state['name'] ?? null,
-                    ])->filter()->join(' - ') ?: null)
-                    ->collapsible()
+                Tabs::make('product_form_tabs')
+                    ->tabs([
+                        Tab::make('Thông tin chung')
+                            ->schema(self::generalFields()),
+                        ...collect(Locale::cases())
+                            ->map(fn (Locale $locale): Tab => self::translationTab($locale))
+                            ->all(),
+                    ])
+                    ->persistTab()
+                    ->id('product-form-tabs')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    private static function generalFields(): array
+    {
+        return [
+            Section::make('Thông tin sản phẩm')
+                ->columns(2)
+                ->schema([
+                    Select::make('category_id')
+                        ->label('Danh mục')
+                        ->options(fn (): array => Category::query()
+                            ->where('type', CategoryType::Product->value)
+                            ->with('translation')
+                            ->ordered()
+                            ->get()
+                            ->mapWithKeys(fn (Category $category): array => [
+                                $category->id => $category->translation?->name ?: 'Danh mục #' . $category->id,
+                            ])
+                            ->all())
+                        ->searchable()
+                        ->preload(),
+                    TextInput::make('sku')
+                        ->label('SKU')
+                        ->maxLength(255),
+                    TextInput::make('price')
+                        ->label('Giá')
+                        ->numeric()
+                        ->prefix('₫'),
+                    TextInput::make('sale_price')
+                        ->label('Giá khuyến mãi')
+                        ->numeric()
+                        ->prefix('₫'),
+                    TextInput::make('unit')
+                        ->label('Đơn vị')
+                        ->maxLength(255),
+                    TextInput::make('sort_order')
+                        ->label('Thứ tự')
+                        ->required()
+                        ->numeric()
+                        ->default(0),
+                    Toggle::make('is_featured')
+                        ->label('Nổi bật')
+                        ->required(),
+                    Toggle::make('is_active')
+                        ->label('Kích hoạt')
+                        ->required(),
+                ]),
+        ];
+    }
+
+    private static function translationTab(Locale $locale): Tab
+    {
+        return Tab::make($locale->label())
+            ->schema([
+                Repeater::make('translations_' . $locale->value)
+                    ->label($locale->label())
+                    ->relationship(
+                        'translations',
+                        modifyQueryUsing: fn (Builder $query): Builder => $query->where('locale', $locale->value),
+                    )
+                    ->schema(self::translationFields($locale))
+                    ->defaultItems(1)
+                    ->maxItems(1)
+                    ->minItems(1)
                     ->addable(false)
                     ->deletable(false)
                     ->reorderable(false)
                     ->cloneable(false)
-                    ->default(Locale::translationRepeaterDefaults())
-                    ->schema([
-                        Section::make('Nội dung')
-                            ->columns(2)
-                            ->schema([
-                                Hidden::make('locale')
-                                    ->required(),
-                                TextInput::make('locale_label')
-                                    ->label('Ngôn ngữ')
-                                    ->disabled()
-                                    ->dehydrated(false)
-                                    ->default(fn (Get $get): ?string => Locale::labelFor($get('locale')))
-                                    ->afterStateHydrated(fn (TextInput $component, Get $get): mixed => $component->state(Locale::labelFor($get('locale')))),
-                                TextInput::make('name')
-                                    ->label('Tên sản phẩm')
-                                    ->required()
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(function (?string $state, Get $get, Set $set): void {
-                                        if (filled($get('slug')) || blank($state)) {
-                                            return;
-                                        }
-
-                                        $set('slug', Str::slug($state));
-                                    })
-                                    ->maxLength(255),
-                                TextInput::make('slug')
-                                    ->label('Slug')
-                                    ->placeholder('Tự sinh khi lưu nếu để trống')
-                                    ->maxLength(255),
-                                DateTimePicker::make('published_at')
-                                    ->label('Ngày xuất bản'),
-                                Textarea::make('description')
-                                    ->label('Mô tả ngắn')
-                                    ->columnSpanFull(),
-                                RichEditor::make('content')
-                                    ->label('Nội dung')
-                                    ->columnSpanFull(),
-                                KeyValue::make('specifications')
-                                    ->label('Thông số')
-                                    ->columnSpanFull(),
-                                Toggle::make('is_published')
-                                    ->label('Xuất bản')
-                                    ->default(true),
-                            ]),
-                        Section::make('Nội dung trang chi tiết')
-                            ->description('Các trường này đổ trực tiếp ra trang detail sản phẩm: ứng dụng, nền vật liệu, quy trình, FAQ và các khối tư vấn.')
-                            ->columns(2)
-                            ->schema([
-                                Textarea::make('blocks.overview')
-                                    ->label('Tổng quan chi tiết')
-                                    ->rows(4)
-                                    ->columnSpanFull(),
-                                TagsInput::make('blocks.applications')
-                                    ->label('Ứng dụng')
-                                    ->placeholder('Nhập một ứng dụng rồi Enter')
-                                    ->columnSpanFull(),
-                                TagsInput::make('blocks.substrates')
-                                    ->label('Nền vật liệu')
-                                    ->placeholder('PET, PP, PE...')
-                                    ->columnSpanFull(),
-                                TagsInput::make('blocks.features')
-                                    ->label('Đặc tính kỹ thuật')
-                                    ->placeholder('Nhập một đặc tính rồi Enter')
-                                    ->columnSpanFull(),
-                                Textarea::make('blocks.process')
-                                    ->label('Quy trình / cấu trúc')
-                                    ->helperText('Có thể ngăn cách các bước bằng dấu ; hoặc ->')
-                                    ->rows(4)
-                                    ->columnSpanFull(),
-                                TagsInput::make('blocks.consulting_inputs')
-                                    ->label('Thông tin khách cần chuẩn bị')
-                                    ->placeholder('Nền vật liệu, công nghệ, yêu cầu thành phẩm...')
-                                    ->columnSpanFull(),
-                                TagsInput::make('blocks.storage_notes')
-                                    ->label('Lưu ý bảo quản')
-                                    ->placeholder('Nhập một lưu ý rồi Enter')
-                                    ->columnSpanFull(),
-                                Repeater::make('blocks.selection_matrix')
-                                    ->label('Ma trận lựa chọn vật liệu')
-                                    ->schema([
-                                        TextInput::make('criteria')
-                                            ->label('Tiêu chí')
-                                            ->required(),
-                                        Textarea::make('question')
-                                            ->label('Câu hỏi cần làm rõ')
-                                            ->rows(2)
-                                            ->required(),
-                                        Textarea::make('decision')
-                                            ->label('Hướng chọn vật liệu')
-                                            ->rows(2)
-                                            ->required(),
-                                    ])
-                                    ->columns(3)
-                                    ->collapsible()
-                                    ->reorderable()
-                                    ->columnSpanFull(),
-                                Repeater::make('blocks.problem_solving')
-                                    ->label('Vấn đề và hướng xử lý')
-                                    ->schema([
-                                        TextInput::make('problem')
-                                            ->label('Vấn đề')
-                                            ->required(),
-                                        Textarea::make('reason')
-                                            ->label('Nguyên nhân thường gặp')
-                                            ->rows(2)
-                                            ->required(),
-                                        Textarea::make('solution')
-                                            ->label('Hướng xử lý')
-                                            ->rows(2)
-                                            ->required(),
-                                    ])
-                                    ->columns(3)
-                                    ->collapsible()
-                                    ->reorderable()
-                                    ->columnSpanFull(),
-                                Repeater::make('blocks.service_flow')
-                                    ->label('Quy trình triển khai cùng Kingda')
-                                    ->schema([
-                                        TextInput::make('title')
-                                            ->label('Tiêu đề')
-                                            ->required(),
-                                        Textarea::make('text')
-                                            ->label('Mô tả')
-                                            ->rows(2)
-                                            ->required(),
-                                    ])
-                                    ->columns(2)
-                                    ->collapsible()
-                                    ->reorderable()
-                                    ->columnSpanFull(),
-                                Repeater::make('blocks.faq')
-                                    ->label('FAQ sản phẩm')
-                                    ->schema([
-                                        TextInput::make('question')
-                                            ->label('Câu hỏi')
-                                            ->required(),
-                                        Textarea::make('answer')
-                                            ->label('Trả lời')
-                                            ->rows(3)
-                                            ->required(),
-                                    ])
-                                    ->columns(2)
-                                    ->collapsible()
-                                    ->reorderable()
-                                    ->columnSpanFull(),
-                                Repeater::make('blocks.strengths')
-                                    ->label('Lý do chọn Kingda')
-                                    ->schema([
-                                        TextInput::make('title')
-                                            ->label('Tiêu đề')
-                                            ->required(),
-                                        Textarea::make('text')
-                                            ->label('Mô tả')
-                                            ->rows(2)
-                                            ->required(),
-                                    ])
-                                    ->columns(2)
-                                    ->collapsible()
-                                    ->reorderable()
-                                    ->columnSpanFull(),
-                            ]),
-                        Section::make('Đa phương tiện')
-                            ->columns(2)
-                            ->schema([
-                                SpatieMediaLibraryFileUpload::make('thumbnail')
-                                    ->label('Ảnh đại diện')
-                                    ->collection('thumbnail')
-                                    ->disk('public')
-                                    ->visibility('public')
-                                    ->image(),
-                                SpatieMediaLibraryFileUpload::make('hero')
-                                    ->label('Ảnh hero')
-                                    ->collection('hero')
-                                    ->disk('public')
-                                    ->visibility('public')
-                                    ->image(),
-                                SpatieMediaLibraryFileUpload::make('gallery')
-                                    ->label('Thư viện ảnh')
-                                    ->collection('gallery')
-                                    ->disk('public')
-                                    ->visibility('public')
-                                    ->image()
-                                    ->multiple()
-                                    ->reorderable()
-                                    ->columnSpanFull(),
-                            ]),
-                        Section::make('SEO')
-                            ->columns(2)
-                            ->schema([
-                                TextInput::make('seo_title')
-                                    ->label('SEO title')
-                                    ->maxLength(255),
-                                TextInput::make('canonical_url')
-                                    ->label('Canonical URL')
-                                    ->maxLength(255),
-                                Textarea::make('seo_description')
-                                    ->label('SEO description'),
-                                TextInput::make('meta_robots')
-                                    ->label('Meta robots')
-                                    ->default('index,follow')
-                                    ->maxLength(255),
-                                TextInput::make('og_title')
-                                    ->label('OG title')
-                                    ->maxLength(255),
-                                Textarea::make('og_description')
-                                    ->label('OG description'),
-                                SpatieMediaLibraryFileUpload::make('og_image')
-                                    ->label('OG image')
-                                    ->collection('og_image')
-                                    ->disk('public')
-                                    ->visibility('public')
-                                    ->image(),
-                            ]),
+                    ->itemHeaders(false)
+                    ->hiddenLabel()
+                    ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
+                        ...$data,
+                        'locale' => $locale->value,
+                    ])
+                    ->mutateRelationshipDataBeforeSaveUsing(fn (array $data): array => [
+                        ...$data,
+                        'locale' => $locale->value,
                     ])
                     ->columnSpanFull(),
             ]);
+    }
+
+    private static function translationFields(Locale $locale): array
+    {
+        return [
+            Section::make('Nội dung')
+                ->columns(2)
+                ->schema([
+                    Hidden::make('locale')
+                        ->default($locale->value)
+                        ->required(),
+                    TextInput::make('locale_label')
+                        ->label('Ngôn ngữ')
+                        ->disabled()
+                        ->dehydrated(false)
+                        ->default($locale->label())
+                        ->afterStateHydrated(fn (TextInput $component): mixed => $component->state($locale->label())),
+                    TextInput::make('name')
+                        ->label('Tên sản phẩm')
+                        ->required()
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(function (?string $state, Get $get, Set $set): void {
+                            if (filled($get('slug')) || blank($state)) {
+                                return;
+                            }
+
+                            $set('slug', Str::slug($state));
+                        })
+                        ->maxLength(255),
+                    TextInput::make('slug')
+                        ->label('Slug')
+                        ->placeholder('Tự sinh khi lưu nếu để trống')
+                        ->maxLength(255),
+                    DateTimePicker::make('published_at')
+                        ->label('Ngày xuất bản'),
+                    Textarea::make('description')
+                        ->label('Mô tả ngắn')
+                        ->columnSpanFull(),
+                    RichEditor::make('content')
+                        ->label('Nội dung')
+                        ->columnSpanFull(),
+                    KeyValue::make('specifications')
+                        ->label('Thông số')
+                        ->columnSpanFull(),
+                    Toggle::make('is_published')
+                        ->label('Xuất bản')
+                        ->default(true),
+                ]),
+            Section::make('Nội dung trang chi tiết')
+                ->description('Các trường này đổ trực tiếp ra trang detail sản phẩm: ứng dụng, nền vật liệu, quy trình, FAQ và các khối tư vấn.')
+                ->columns(2)
+                ->schema([
+                    Textarea::make('blocks.overview')
+                        ->label('Tổng quan chi tiết')
+                        ->rows(4)
+                        ->columnSpanFull(),
+                    TagsInput::make('blocks.applications')
+                        ->label('Ứng dụng')
+                        ->placeholder('Nhập một ứng dụng rồi Enter')
+                        ->columnSpanFull(),
+                    TagsInput::make('blocks.substrates')
+                        ->label('Nền vật liệu')
+                        ->placeholder('PET, PP, PE...')
+                        ->columnSpanFull(),
+                    TagsInput::make('blocks.features')
+                        ->label('Đặc tính kỹ thuật')
+                        ->placeholder('Nhập một đặc tính rồi Enter')
+                        ->columnSpanFull(),
+                    Textarea::make('blocks.process')
+                        ->label('Quy trình / cấu trúc')
+                        ->helperText('Có thể ngăn cách các bước bằng dấu ; hoặc ->')
+                        ->rows(4)
+                        ->columnSpanFull(),
+                    TagsInput::make('blocks.consulting_inputs')
+                        ->label('Thông tin khách cần chuẩn bị')
+                        ->placeholder('Nền vật liệu, công nghệ, yêu cầu thành phẩm...')
+                        ->columnSpanFull(),
+                    TagsInput::make('blocks.storage_notes')
+                        ->label('Lưu ý bảo quản')
+                        ->placeholder('Nhập một lưu ý rồi Enter')
+                        ->columnSpanFull(),
+                    Repeater::make('blocks.selection_matrix')
+                        ->label('Ma trận lựa chọn vật liệu')
+                        ->schema([
+                            TextInput::make('criteria')
+                                ->label('Tiêu chí')
+                                ->required(),
+                            Textarea::make('question')
+                                ->label('Câu hỏi cần làm rõ')
+                                ->rows(2)
+                                ->required(),
+                            Textarea::make('decision')
+                                ->label('Hướng chọn vật liệu')
+                                ->rows(2)
+                                ->required(),
+                        ])
+                        ->columns(3)
+                        ->collapsible()
+                        ->reorderable()
+                        ->columnSpanFull(),
+                    Repeater::make('blocks.problem_solving')
+                        ->label('Vấn đề và hướng xử lý')
+                        ->schema([
+                            TextInput::make('problem')
+                                ->label('Vấn đề')
+                                ->required(),
+                            Textarea::make('reason')
+                                ->label('Nguyên nhân thường gặp')
+                                ->rows(2)
+                                ->required(),
+                            Textarea::make('solution')
+                                ->label('Hướng xử lý')
+                                ->rows(2)
+                                ->required(),
+                        ])
+                        ->columns(3)
+                        ->collapsible()
+                        ->reorderable()
+                        ->columnSpanFull(),
+                    Repeater::make('blocks.service_flow')
+                        ->label('Quy trình triển khai cùng Kingda')
+                        ->schema([
+                            TextInput::make('title')
+                                ->label('Tiêu đề')
+                                ->required(),
+                            Textarea::make('text')
+                                ->label('Mô tả')
+                                ->rows(2)
+                                ->required(),
+                        ])
+                        ->columns(2)
+                        ->collapsible()
+                        ->reorderable()
+                        ->columnSpanFull(),
+                    Repeater::make('blocks.faq')
+                        ->label('FAQ sản phẩm')
+                        ->schema([
+                            TextInput::make('question')
+                                ->label('Câu hỏi')
+                                ->required(),
+                            Textarea::make('answer')
+                                ->label('Trả lời')
+                                ->rows(3)
+                                ->required(),
+                        ])
+                        ->columns(2)
+                        ->collapsible()
+                        ->reorderable()
+                        ->columnSpanFull(),
+                    Repeater::make('blocks.strengths')
+                        ->label('Lý do chọn Kingda')
+                        ->schema([
+                            TextInput::make('title')
+                                ->label('Tiêu đề')
+                                ->required(),
+                            Textarea::make('text')
+                                ->label('Mô tả')
+                                ->rows(2)
+                                ->required(),
+                        ])
+                        ->columns(2)
+                        ->collapsible()
+                        ->reorderable()
+                        ->columnSpanFull(),
+                ]),
+            Section::make('Đa phương tiện')
+                ->columns(2)
+                ->schema([
+                    SpatieMediaLibraryFileUpload::make('thumbnail')
+                        ->label('Ảnh đại diện')
+                        ->collection('thumbnail')
+                        ->disk('public')
+                        ->visibility('public')
+                        ->image(),
+                    SpatieMediaLibraryFileUpload::make('hero')
+                        ->label('Ảnh hero')
+                        ->collection('hero')
+                        ->disk('public')
+                        ->visibility('public')
+                        ->image(),
+                    SpatieMediaLibraryFileUpload::make('gallery')
+                        ->label('Thư viện ảnh')
+                        ->collection('gallery')
+                        ->disk('public')
+                        ->visibility('public')
+                        ->image()
+                        ->multiple()
+                        ->reorderable()
+                        ->columnSpanFull(),
+                ]),
+            Section::make('SEO')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('seo_title')
+                        ->label('SEO title')
+                        ->maxLength(255),
+                    TextInput::make('canonical_url')
+                        ->label('Canonical URL')
+                        ->maxLength(255),
+                    Textarea::make('seo_description')
+                        ->label('SEO description'),
+                    TextInput::make('meta_robots')
+                        ->label('Meta robots')
+                        ->default('index,follow')
+                        ->maxLength(255),
+                    TextInput::make('og_title')
+                        ->label('OG title')
+                        ->maxLength(255),
+                    Textarea::make('og_description')
+                        ->label('OG description'),
+                    SpatieMediaLibraryFileUpload::make('og_image')
+                        ->label('OG image')
+                        ->collection('og_image')
+                        ->disk('public')
+                        ->visibility('public')
+                        ->image(),
+                ]),
+        ];
     }
 }
