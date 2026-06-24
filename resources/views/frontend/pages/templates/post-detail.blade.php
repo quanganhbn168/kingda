@@ -21,8 +21,10 @@
         $categoryName = $categoryTranslation?->name ?: __('ui.common.news');
         $publishedAt = $translation->published_at;
         $plainText = trim(strip_tags((string) $content));
-        $wordCount = str_word_count(Str::ascii($plainText));
-        $readingMinutes = max(1, (int) ceil($wordCount / 220));
+        $readingUnits = $locale === 'zh'
+            ? mb_strlen(preg_replace('/\s+/u', '', $plainText)) / 400
+            : str_word_count(Str::ascii($plainText)) / 220;
+        $readingMinutes = max(1, (int) ceil($readingUnits));
     @endphp
 
     <section class="relative overflow-hidden bg-[#17110a] py-12 text-white md:py-16">
@@ -58,7 +60,7 @@
                             @if($publishedAt)
                                 <span>{{ $publishedAt->format('d/m/Y') }}</span>
                             @endif
-                            <span>{{ $readingMinutes }} phút đọc</span>
+                            <span>{{ __('ui.post_detail.reading_time', ['count' => $readingMinutes]) }}</span>
                             @if($post->author?->name)
                                 <span>{{ $post->author->name }}</span>
                             @endif
@@ -103,21 +105,21 @@
                 @endif
 
                 <div class="rounded bg-white p-5 shadow ring-1 ring-slate-200">
-                    <p class="text-xs font-extrabold uppercase tracking-wide text-primary">Thông tin bài viết</p>
+                    <p class="text-xs font-extrabold uppercase tracking-wide text-primary">{{ __('ui.post_detail.article_information') }}</p>
                     <div class="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                        <p><strong class="text-slate-950">Chuyên mục:</strong> {{ $categoryName }}</p>
+                        <p><strong class="text-slate-950">{{ __('ui.post_detail.category') }}</strong> {{ $categoryName }}</p>
                         @if($publishedAt)
-                            <p><strong class="text-slate-950">Ngày đăng:</strong> {{ $publishedAt->format('d/m/Y') }}</p>
+                            <p><strong class="text-slate-950">{{ __('ui.post_detail.published_at') }}</strong> {{ $publishedAt->format('d/m/Y') }}</p>
                         @endif
-                        <p><strong class="text-slate-950">Thời lượng:</strong> {{ $readingMinutes }} phút đọc</p>
+                        <p><strong class="text-slate-950">{{ __('ui.post_detail.duration') }}</strong> {{ __('ui.post_detail.reading_time', ['count' => $readingMinutes]) }}</p>
                         @if($post->author?->name)
-                            <p><strong class="text-slate-950">Tác giả:</strong> {{ $post->author->name }}</p>
+                            <p><strong class="text-slate-950">{{ __('ui.post_detail.author') }}</strong> {{ $post->author->name }}</p>
                         @endif
                     </div>
                 </div>
 
                 <a href="{{ $listingUrl }}" class="inline-flex w-full items-center justify-center gap-2 rounded bg-primary px-5 py-3 text-sm font-extrabold text-white transition hover:bg-primary-dark">
-                    Xem tất cả tin tức
+                    {{ __('ui.post_detail.view_all_news') }}
                     <i class="fa-solid fa-arrow-right-long"></i>
                 </a>
             </aside>
@@ -128,9 +130,9 @@
                 <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                     <div>
                         <p class="text-xs font-extrabold uppercase tracking-wide text-primary">{{ __('ui.common.related_news') }}</p>
-                        <h2 class="mt-2 text-3xl font-black text-slate-950">Bài viết khác</h2>
+                        <h2 class="mt-2 text-3xl font-black text-slate-950">{{ __('ui.post_detail.other_articles') }}</h2>
                     </div>
-                    <a href="{{ $listingUrl }}" class="text-sm font-extrabold text-primary hover:text-primary-dark">Xem tất cả tin tức</a>
+                    <a href="{{ $listingUrl }}" class="text-sm font-extrabold text-primary hover:text-primary-dark">{{ __('ui.post_detail.view_all_news') }}</a>
                 </div>
 
                 <div class="mt-6 grid gap-5 md:grid-cols-3">
@@ -161,7 +163,7 @@
                                 <h3 class="mt-2 text-lg font-black leading-snug text-slate-950 transition group-hover:text-primary">{{ $relatedTranslation?->title }}</h3>
                                 <p class="mt-2 text-sm leading-6 text-slate-600">{{ Str::limit($relatedTranslation?->description, 115) }}</p>
                                 <span class="mt-4 inline-flex items-center gap-2 text-sm font-extrabold text-primary">
-                                    Đọc tiếp
+                                    {{ __('ui.actions.read_more') }}
                                     <i class="fa-solid fa-arrow-right-long transition group-hover:translate-x-1"></i>
                                 </span>
                             </div>

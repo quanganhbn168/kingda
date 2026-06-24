@@ -37,11 +37,7 @@
         $consultingInputs = collect($blocks['consulting_inputs'] ?? [])->filter()->values();
 
         if ($consultingInputs->isEmpty()) {
-            $consultingInputs = collect([
-                'Nền vật liệu đang sử dụng.',
-                'Yêu cầu thành phẩm mong muốn.',
-                'Thiết bị và điều kiện gia công hiện tại.',
-            ]);
+            $consultingInputs = collect(__('ui.product_detail.default_consulting_inputs'));
         }
 
         $storageNotes = collect($blocks['storage_notes'] ?? [])->filter()->values();
@@ -54,10 +50,10 @@
         $relatedCount = $relatedProducts->count();
 
         $quickFacts = collect([
-            ['label' => 'Danh mục', 'value' => $categoryName],
-            ['label' => 'Mã sản phẩm', 'value' => $product->sku],
-            ['label' => 'Ứng dụng chính', 'value' => $applications->isNotEmpty() ? Str::limit($applications->first(), 80) : null],
-            ['label' => 'Nền vật liệu', 'value' => $substrates->isNotEmpty() ? $substrates->take(3)->implode(', ') : null],
+            ['label' => __('ui.product_detail.category'), 'value' => $categoryName],
+            ['label' => __('ui.product_detail.sku'), 'value' => $product->sku],
+            ['label' => __('ui.product_detail.main_application'), 'value' => $applications->isNotEmpty() ? Str::limit($applications->first(), 80) : null],
+            ['label' => __('ui.product_detail.substrate'), 'value' => $substrates->isNotEmpty() ? $substrates->take(3)->implode(', ') : null],
         ])->filter(fn (array $item): bool => filled($item['value'] ?? null))->values();
     @endphp
 
@@ -101,7 +97,7 @@
                         <div class="flex aspect-[4/3] w-full items-center justify-center bg-slate-100 text-slate-400">
                             <div class="text-center">
                                 <i class="fa-solid fa-image text-5xl"></i>
-                                <div class="mt-3 text-sm font-bold">Chưa có ảnh sản phẩm</div>
+                                <div class="mt-3 text-sm font-bold">{{ __('ui.product_detail.no_product_image') }}</div>
                             </div>
                         </div>
                     @endif
@@ -115,7 +111,7 @@
 
                         @if($product->sku)
                             <span class="inline-flex rounded-full bg-slate-100 px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-slate-600">
-                                SKU: {{ $product->sku }}
+                                {{ __('ui.product_detail.sku') }}: {{ $product->sku }}
                             </span>
                         @endif
                     </div>
@@ -153,7 +149,7 @@
                         </a>
 
                         <a href="#thong-so" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-extrabold text-slate-800 transition hover:border-primary hover:text-primary">
-                            Xem thông số
+                            {{ __('ui.product_detail.view_specifications') }}
                             <i class="fa-solid fa-table-list"></i>
                         </a>
                     </div>
@@ -168,16 +164,16 @@
                             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                                 <div>
                                     <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                        Ứng dụng
+                                        {{ __('ui.product_detail.applications') }}
                                     </p>
 
                                     <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                        Ứng dụng phù hợp
+                                        {{ __('ui.product_detail.suitable_applications') }}
                                     </h2>
                                 </div>
 
                                 <p class="max-w-xl text-sm leading-6 text-slate-500">
-                                    Các trường hợp sử dụng tiêu biểu của sản phẩm.
+                                    {{ __('ui.product_detail.applications_description') }}
                                 </p>
                             </div>
 
@@ -204,16 +200,16 @@
                             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                                 <div>
                                     <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                        Nền vật liệu
+                                        {{ __('ui.product_detail.substrates') }}
                                     </p>
 
                                     <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                        Khả năng tương thích
+                                        {{ __('ui.product_detail.compatibility') }}
                                     </h2>
                                 </div>
 
                                 <p class="max-w-xl text-sm leading-6 text-slate-500">
-                                    Nên kiểm tra lại trên mẫu thực tế trước khi triển khai sản xuất hàng loạt.
+                                    {{ __('ui.product_detail.compatibility_note') }}
                                 </p>
                             </div>
 
@@ -233,11 +229,11 @@
                             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                                 <div>
                                     <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                        Đặc tính
+                                        {{ __('ui.product_detail.features') }}
                                     </p>
 
                                     <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                        Đặc tính kỹ thuật
+                                        {{ __('ui.product_detail.technical_features') }}
                                     </h2>
                                 </div>
                             </div>
@@ -264,16 +260,16 @@
                         <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                             <div>
                                 <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                    Thông số
+                                    {{ __('ui.product_detail.specifications') }}
                                 </p>
 
                                 <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                    Thông số tham khảo
+                                    {{ __('ui.product_detail.reference_specifications') }}
                                 </h2>
                             </div>
 
                             <p class="max-w-xl text-sm leading-6 text-slate-500">
-                                Thông số có thể thay đổi theo nền vật liệu và điều kiện vận hành thực tế.
+                                {{ __('ui.product_detail.specifications_note') }}
                             </p>
                         </div>
 
@@ -293,7 +289,7 @@
                             </dl>
                         @else
                             <div class="mt-7 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-7 text-slate-500">
-                                Thông số chi tiết đang được cập nhật. Vui lòng liên hệ để được tư vấn theo nền vật liệu và yêu cầu sử dụng thực tế.
+                                {{ __('ui.product_detail.specifications_empty') }}
                             </div>
                         @endif
                     </section>
@@ -301,7 +297,7 @@
                     @if($translation->content)
                         <section id="noi-dung" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
                             <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                Chi tiết
+                                {{ __('ui.product_detail.details') }}
                             </p>
 
                             <div class="kd-product-content mt-5">
@@ -313,11 +309,11 @@
                     @if($storageNotes->isNotEmpty())
                         <section id="bao-quan" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
                             <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                Bảo quản
+                                {{ __('ui.product_detail.storage') }}
                             </p>
 
                             <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                Lưu ý bảo quản
+                                {{ __('ui.product_detail.storage_notes') }}
                             </h2>
 
                             <div class="mt-7 grid gap-4 md:grid-cols-2">
@@ -338,7 +334,7 @@
                             </p>
 
                             <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                Câu hỏi thường gặp
+                                {{ __('ui.product_detail.faq') }}
                             </h2>
 
                             <div class="mt-7 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200">
@@ -362,15 +358,15 @@
                 <aside class="space-y-5 lg:sticky lg:top-24 lg:self-start">
                     <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                         <div class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                            Cần tư vấn?
+                            {{ __('ui.product_detail.need_consulting') }}
                         </div>
 
                         <h2 class="mt-2 text-2xl font-black leading-tight text-slate-950">
-                            Gửi yêu cầu sản phẩm
+                            {{ __('ui.product_detail.send_product_request') }}
                         </h2>
 
                         <p class="mt-3 text-sm leading-7 text-slate-600">
-                            Gửi thông tin nền vật liệu, mục đích sử dụng và yêu cầu thành phẩm để được tư vấn đúng dòng sản phẩm.
+                            {{ __('ui.product_detail.consulting_description') }}
                         </p>
 
                         <a href="{{ $contactUrl }}" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-white transition hover:bg-primary-dark">
@@ -381,7 +377,7 @@
 
                     <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                         <div class="text-xs font-extrabold uppercase tracking-wide text-slate-400">
-                            Thông tin cần chuẩn bị
+                            {{ __('ui.product_detail.information_to_prepare') }}
                         </div>
 
                         <div class="mt-5 space-y-3">

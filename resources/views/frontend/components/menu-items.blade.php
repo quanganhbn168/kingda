@@ -49,7 +49,7 @@
 @foreach($items as $item)
     @php($isActive = $isItemActive($item))
 
-    <div class="group relative flex h-full items-center">
+    <div class="group/menu relative flex h-full items-center">
         <a
             href="{{ $item->resolved_url }}"
             target="{{ $item->resolved_target }}"
@@ -60,18 +60,18 @@
             <span>{{ $item->resolved_label }}</span>
 
             @if($item->has_children)
-                <svg class="h-4 w-4 transition group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                <svg class="h-4 w-4 transition group-hover/menu:rotate-180" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                 </svg>
             @endif
         </a>
 
         @if($item->has_children)
-            <div class="invisible absolute left-0 top-full z-50 min-w-64 translate-y-2 rounded border border-slate-200 bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+            <div class="invisible absolute left-0 top-full z-50 min-w-64 translate-y-2 rounded border border-slate-200 bg-white p-2 opacity-0 shadow-xl transition group-hover/menu:visible group-hover/menu:translate-y-0 group-hover/menu:opacity-100">
                 @foreach($item->childrenRecursive as $child)
                     @php($isChildActive = $isItemActive($child))
 
-                    <div class="relative">
+                    <div class="group/submenu relative">
                         <a
                             href="{{ $child->resolved_url }}"
                             target="{{ $child->resolved_target }}"
@@ -82,12 +82,14 @@
                             <span>{{ $child->resolved_label }}</span>
 
                             @if($child->has_children)
-                                <span class="text-slate-400">›</span>
+                                <svg class="h-4 w-4 shrink-0 text-slate-400 transition group-hover/submenu:translate-x-0.5 group-hover/submenu:text-primary" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.17 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                </svg>
                             @endif
                         </a>
 
                         @if($child->has_children)
-                            <div class="ml-3 border-l border-slate-100 pl-3">
+                            <div class="invisible absolute left-full top-0 z-50 min-w-72 -translate-x-2 rounded border border-slate-200 bg-white p-2 opacity-0 shadow-xl transition group-hover/submenu:visible group-hover/submenu:translate-x-0 group-hover/submenu:opacity-100">
                                 @foreach($child->childrenRecursive as $grandChild)
                                     @php($isGrandChildActive = $isItemActive($grandChild))
 
@@ -95,7 +97,7 @@
                                         href="{{ $grandChild->resolved_url }}"
                                         target="{{ $grandChild->resolved_target }}"
                                         rel="{{ $grandChild->rel }}"
-                                        class="block rounded px-4 py-2 text-sm transition hover:bg-red-50 hover:text-primary {{ $isGrandChildActive ? 'bg-red-50 font-semibold text-primary' : 'text-slate-600' }}"
+                                        class="block rounded px-4 py-3 text-sm font-semibold transition hover:bg-red-50 hover:text-primary {{ $isGrandChildActive ? 'bg-red-50 text-primary' : 'text-slate-700' }}"
                                         @if($isGrandChildActive) aria-current="page" @endif
                                     >
                                         {{ $grandChild->resolved_label }}
