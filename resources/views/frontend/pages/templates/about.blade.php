@@ -1,230 +1,135 @@
 @extends('layouts.master')
 
-@section('title', 'Giới thiệu công ty Kingda')
+@section('title', $translation->meta_title ?? $translation->title)
 
 @section('content')
-    <main class="kingda-about-page">
+    @php
+        $hero = $aboutSettings['hero'] ?? [];
+        $intro = $aboutSettings['intro'] ?? [];
+        $development = $aboutSettings['development'] ?? [];
+        $timeline = $aboutSettings['timeline'] ?? [];
+        $culture = $aboutSettings['culture'] ?? [];
+        $capabilities = $aboutSettings['capabilities'] ?? [];
+        $certificates = $aboutSettings['certificates'] ?? [];
+        $intellectualProperty = $aboutSettings['intellectual_property'] ?? [];
+        $customers = $aboutSettings['customers'] ?? [];
+        $contact = $aboutSettings['contact'] ?? [];
+        $heroImage = $hero['image'] ?: asset('images/about/kingda-hero-rd.jpg');
+        $introImage = $intro['image'] ?: asset('images/about/kingda-office.jpg');
+        $introSmallImageOne = $intro['small_image_one'] ?: asset('images/about/kingda-lab.jpg');
+        $introSmallImageTwo = $intro['small_image_two'] ?: asset('images/about/kingda-production.jpg');
+        $localizedContactUrl = app()->getLocale() === 'vi'
+            ? url('/lien-he')
+            : url('/' . app()->getLocale() . '/contact');
+        $contactButtonUrl = filled($contact['button_url'] ?? null) && $contact['button_url'] !== '/lien-he'
+            ? $contact['button_url']
+            : $localizedContactUrl;
+    @endphp
 
-        {{-- HERO --}}
+    <main class="kingda-about-page">
         <section class="about-hero">
             <div class="about-hero__bg"></div>
-
             <div class="about-container">
                 <div class="about-hero__inner">
                     <div class="about-hero__content" data-aos="fade-up">
-                        <div class="about-eyebrow">Giới thiệu công ty</div>
-
-                        <h1>
-                            Kingda - Giải pháp vật liệu in điện tử và sơn công nghệ cao
-                        </h1>
-
-                        <p>
-                            Nghiên cứu, sản xuất, kinh doanh và cung cấp các giải pháp mực in,
-                            sơn và vật liệu ứng dụng cho điện tử 3C, ô tô, composite và gia công kính.
-                        </p>
-
+                        @if(filled($hero['eyebrow'] ?? null))
+                            <div class="about-eyebrow">{{ $hero['eyebrow'] }}</div>
+                        @endif
+                        <h1>{{ $hero['title'] ?? $translation->headline ?? $translation->title }}</h1>
+                        @if(filled($hero['description'] ?? null))
+                            <p>{{ $hero['description'] }}</p>
+                        @endif
                         <div class="about-hero__actions">
-                            <a href="#about-intro" class="about-btn about-btn--primary">
-                                Tìm hiểu thêm
-                            </a>
-
-                            <a href="#about-culture" class="about-btn about-btn--ghost">
-                                Văn hóa doanh nghiệp
-                            </a>
+                            <a href="#about-intro" class="about-btn about-btn--primary">{{ $hero['primary_button_label'] ?? '' }}</a>
+                            <a href="#about-culture" class="about-btn about-btn--ghost">{{ $hero['secondary_button_label'] ?? '' }}</a>
                         </div>
                     </div>
-
                     <div class="about-hero__visual" data-aos="fade-left">
                         <div class="about-hero__card about-hero__card--main">
-                            <img src="{{ asset('images/about/kingda-hero-rd.jpg') }}" alt="Kingda R&D">
+                            <img src="{{ $heroImage }}" alt="{{ $hero['title'] ?? $translation->title }}">
                         </div>
-
                         <div class="about-hero__floating about-hero__floating--one">
-                            <strong>2009</strong>
-                            <span>Thành lập</span>
+                            <strong>{{ $hero['floating_one_value'] ?? '' }}</strong>
+                            <span>{{ $hero['floating_one_label'] ?? '' }}</span>
                         </div>
-
                         <div class="about-hero__floating about-hero__floating--two">
-                            <strong>ISO</strong>
-                            <span>Quản lý chất lượng</span>
+                            <strong>{{ $hero['floating_two_value'] ?? '' }}</strong>
+                            <span>{{ $hero['floating_two_label'] ?? '' }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-
-        {{-- INTRO --}}
         <section id="about-intro" class="about-section about-intro">
             <div class="about-container">
                 <div class="about-grid about-grid--intro">
                     <div class="about-intro__media" data-aos="fade-right">
                         <div class="about-image-stack">
                             <div class="about-image-stack__main">
-                                <img src="{{ asset('images/about/kingda-office.jpg') }}" alt="Văn phòng Kingda">
+                                <img src="{{ $introImage }}" alt="{{ $intro['title'] ?? $translation->title }}">
                             </div>
-
                             <div class="about-image-stack__small about-image-stack__small--one">
-                                <img src="{{ asset('images/about/kingda-lab.jpg') }}" alt="Phòng thí nghiệm Kingda">
+                                <img src="{{ $introSmallImageOne }}" alt="{{ $intro['title'] ?? $translation->title }}">
                             </div>
-
                             <div class="about-image-stack__small about-image-stack__small--two">
-                                <img src="{{ asset('images/about/kingda-production.jpg') }}" alt="Cơ sở sản xuất Kingda">
+                                <img src="{{ $introSmallImageTwo }}" alt="{{ $intro['title'] ?? $translation->title }}">
                             </div>
                         </div>
                     </div>
-
                     <div class="about-intro__content" data-aos="fade-left">
-                        <div class="about-section-label">Về Kingda</div>
-
-                        <h2>
-                            Nhà cung cấp giải pháp vật liệu in điện tử chuyên nghiệp
-                        </h2>
-
-                        <p>
-                            Kingda được thành lập năm 2009, là doanh nghiệp chuyên nghiên cứu,
-                            sản xuất, kinh doanh và cung cấp dịch vụ trong lĩnh vực mực in, sơn
-                            và các sản phẩm vật liệu tương tự.
-                        </p>
-
-                        <p>
-                            Công ty lấy nhu cầu thị trường làm trung tâm, lấy đội ngũ kỹ thuật làm
-                            lợi thế cạnh tranh cốt lõi, hướng tới việc cung cấp cho khách hàng các
-                            giải pháp sản phẩm ổn định, chất lượng và phù hợp yêu cầu ứng dụng thực tế.
-                        </p>
-
-                        <div class="about-intro__stats">
-                            <div>
-                                <strong>10+</strong>
-                                <span>Năm tích lũy ngành</span>
+                        <div class="about-section-label">{{ $intro['eyebrow'] ?? '' }}</div>
+                        <h2>{{ $intro['title'] ?? '' }}</h2>
+                        @foreach(preg_split('/\R{2,}/', trim($intro['content'] ?? ''), -1, PREG_SPLIT_NO_EMPTY) as $paragraph)
+                            <p>{{ $paragraph }}</p>
+                        @endforeach
+                        @if(! empty($intro['stats']))
+                            <div class="about-intro__stats">
+                                @foreach($intro['stats'] as $stat)
+                                    <div>
+                                        <strong>{{ $stat['value'] ?? '' }}</strong>
+                                        <span>{{ $stat['label'] ?? '' }}</span>
+                                    </div>
+                                @endforeach
                             </div>
-
-                            <div>
-                                <strong>3C</strong>
-                                <span>Ứng dụng điện tử</span>
-                            </div>
-
-                            <div>
-                                <strong>ISO</strong>
-                                <span>Hệ thống quản lý</span>
-                            </div>
-                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </section>
 
-
-        {{-- DEVELOPMENT VIEW --}}
         <section class="about-section about-development">
             <div class="about-container">
                 <div class="about-section-head about-section-head--center" data-aos="fade-up">
-                    <div class="about-section-label">Quan điểm phát triển</div>
-
-                    <h2>
-                        Làm vững chắc - Củng cố phát triển - Mở rộng
-                    </h2>
-
-                    <p>
-                        Kingda phát triển theo hướng ổn định nền tảng quản lý, nâng cao chất lượng,
-                        tăng giá trị sản phẩm và từng bước mở rộng ảnh hưởng trong ngành.
-                    </p>
+                    <div class="about-section-label">{{ $development['eyebrow'] ?? '' }}</div>
+                    <h2>{{ $development['title'] ?? '' }}</h2>
+                    <p>{{ $development['description'] ?? '' }}</p>
                 </div>
-
                 <div class="about-development__grid">
-                    <article class="about-development-card" data-aos="fade-up" data-aos-delay="0">
-                        <span>01</span>
-                        <h3>Làm vững chắc</h3>
-                        <p>
-                            Cam kết trung thực với các bên liên quan, thực hiện nghiêm túc hệ thống
-                            quản lý cơ bản, văn hóa và quy định doanh nghiệp.
-                        </p>
-                    </article>
-
-                    <article class="about-development-card" data-aos="fade-up" data-aos-delay="120">
-                        <span>02</span>
-                        <h3>Củng cố và phát triển mạnh</h3>
-                        <p>
-                            Nâng cao trình độ quản lý, kiểm soát chi phí, ổn định chất lượng và xây dựng
-                            thương hiệu doanh nghiệp.
-                        </p>
-                    </article>
-
-                    <article class="about-development-card" data-aos="fade-up" data-aos-delay="240">
-                        <span>03</span>
-                        <h3>Mở rộng</h3>
-                        <p>
-                            Hướng tới năng lực dẫn đầu về quy mô, thị phần và tạo ảnh hưởng tích cực
-                            trong lĩnh vực vật liệu in điện tử.
-                        </p>
-                    </article>
+                    @foreach($development['items'] ?? [] as $index => $item)
+                        <article class="about-development-card" data-aos="fade-up" data-aos-delay="{{ $index * 120 }}">
+                            <span>{{ $item['number'] ?? str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                            <h3>{{ $item['title'] ?? '' }}</h3>
+                            <p>{{ $item['description'] ?? '' }}</p>
+                        </article>
+                    @endforeach
                 </div>
             </div>
         </section>
 
-
-        {{-- TIMELINE --}}
         <section class="about-section about-timeline">
             <div class="about-container">
                 <div class="about-section-head" data-aos="fade-up">
-                    <div class="about-section-label">Hành trình phát triển</div>
-
-                    <h2>
-                        Những cột mốc quan trọng của Kingda
-                    </h2>
+                    <div class="about-section-label">{{ $timeline['eyebrow'] ?? '' }}</div>
+                    <h2>{{ $timeline['title'] ?? '' }}</h2>
                 </div>
-
                 <div class="about-timeline__list">
-                    @php
-                        $timelines = [
-                            [
-                                'year' => '2009',
-                                'title' => 'Đăng ký chính thức tại Thâm Quyến',
-                                'desc' => 'Chuyên cung cấp các giải pháp ứng dụng vật liệu in ấn điện tử.',
-                            ],
-                            [
-                                'year' => '2015',
-                                'title' => 'Đạt chứng nhận hệ thống',
-                                'desc' => 'Doanh nghiệp được chứng nhận hệ thống ISO9001 / ISO14001 / ISO18001.',
-                            ],
-                            [
-                                'year' => '2016',
-                                'title' => 'Nhà cung cấp đạt chuẩn',
-                                'desc' => 'Trở thành nhà cung cấp đạt chuẩn của Lens và OFILM.',
-                            ],
-                            [
-                                'year' => '2017',
-                                'title' => 'Thành lập công ty vật liệu mới',
-                                'desc' => 'Thành lập Công ty TNHH Vật liệu Mới Kingda tại Đông Quan.',
-                            ],
-                            [
-                                'year' => '2018',
-                                'title' => 'Đầu tư trung tâm R&D',
-                                'desc' =>
-                                    'Mua tòa văn phòng gần 1.000m² tại Songhu Zhigu làm trung tâm nghiên cứu và phát triển.',
-                            ],
-                            [
-                                'year' => '2019',
-                                'title' => 'Chuyển văn phòng và phòng R&D',
-                                'desc' => 'Chuyển đến Trung tâm Nghiên cứu Phát triển Songhu Zhigu.',
-                            ],
-                            [
-                                'year' => '2022',
-                                'title' => 'Vào kho tài nguyên OPPO / VIVO',
-                                'desc' => 'Bắt đầu sản xuất đại trà và mở rộng năng lực cung ứng.',
-                            ],
-                        ];
-                    @endphp
-
-                    @foreach ($timelines as $index => $item)
+                    @foreach($timeline['items'] ?? [] as $index => $item)
                         <article class="about-timeline-item" data-aos="fade-up" data-aos-delay="{{ $index * 80 }}">
-                            <div class="about-timeline-item__year">
-                                {{ $item['year'] }}
-                            </div>
-
+                            <div class="about-timeline-item__year">{{ $item['year'] ?? '' }}</div>
                             <div class="about-timeline-item__body">
-                                <h3>{{ $item['title'] }}</h3>
-                                <p>{{ $item['desc'] }}</p>
+                                <h3>{{ $item['title'] ?? '' }}</h3>
+                                <p>{{ $item['description'] ?? '' }}</p>
                             </div>
                         </article>
                     @endforeach
@@ -232,245 +137,114 @@
             </div>
         </section>
 
-
-        {{-- CULTURE --}}
         <section id="about-culture" class="about-section about-culture">
             <div class="about-container">
                 <div class="about-culture__layout">
                     <div class="about-culture__intro" data-aos="fade-right">
-                        <div class="about-section-label">Văn hóa doanh nghiệp</div>
-
-                        <h2>
-                            Nền tảng định hình cách Kingda tư duy, hành động và phát triển
-                        </h2>
-
-                        <p>
-                            Văn hóa là kim chỉ nam giúp doanh nghiệp duy trì chất lượng,
-                            đổi mới công nghệ và tạo giá trị bền vững cho khách hàng.
-                        </p>
-
+                        <div class="about-section-label">{{ $culture['eyebrow'] ?? '' }}</div>
+                        <h2>{{ $culture['title'] ?? '' }}</h2>
+                        <p>{{ $culture['description'] ?? '' }}</p>
                         <div class="about-culture__highlight">
-                            <div class="about-culture__icon">
-                                ✦
-                            </div>
-
+                            <div class="about-culture__icon">✦</div>
                             <div>
-                                <h3>Giá trị cốt lõi</h3>
-                                <p>
-                                    Trung thực - Tận tâm - Thiết thực - Sáng tạo.
-                                    Đây là phương châm xuyên suốt trong hoạt động nghiên cứu,
-                                    sản xuất và cung cấp giải pháp vật liệu.
-                                </p>
+                                <h3>{{ $culture['highlight_title'] ?? '' }}</h3>
+                                <p>{{ $culture['highlight_description'] ?? '' }}</p>
                             </div>
                         </div>
                     </div>
-
                     <div class="about-culture__cards" data-aos="fade-left">
-                        <article class="about-culture-card">
-                            <div class="about-culture-card__icon">◎</div>
-                            <h3>Định vị</h3>
-                            <p>
-                                Tận tâm trở thành nhà cung cấp giải pháp ứng dụng vật liệu in điện tử.
-                            </p>
-                        </article>
-
-                        <article class="about-culture-card">
-                            <div class="about-culture-card__icon">◇</div>
-                            <h3>Phương châm</h3>
-                            <p>
-                                Trung thực - Tận tâm - Thiết thực - Sáng tạo.
-                            </p>
-                        </article>
-
-                        <article class="about-culture-card">
-                            <div class="about-culture-card__icon">↗</div>
-                            <h3>Mục tiêu</h3>
-                            <p>
-                                Xây dựng thương hiệu và hướng tới chuyên nghiệp hóa.
-                            </p>
-                        </article>
-
-                        <article class="about-culture-card">
-                            <div class="about-culture-card__icon">☷</div>
-                            <h3>Sứ mệnh</h3>
-                            <p>
-                                Tạo giá trị cho khách hàng, xây dựng thương hiệu và tạo dựng thành tựu cho nhân viên.
-                            </p>
-                        </article>
+                        @foreach($culture['items'] ?? [] as $item)
+                            <article class="about-culture-card">
+                                <div class="about-culture-card__icon">{{ $item['icon'] ?? '✦' }}</div>
+                                <h3>{{ $item['title'] ?? '' }}</h3>
+                                <p>{{ $item['description'] ?? '' }}</p>
+                            </article>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </section>
 
-
-        {{-- CAPABILITY --}}
-        <section class="about-section about-capability">
-            <div class="about-container">
-                <div class="about-section-head about-section-head--center" data-aos="fade-up">
-                    <div class="about-section-label">Năng lực doanh nghiệp</div>
-
-                    <h2>
-                        R&D, sản xuất và kiểm soát chất lượng toàn diện
-                    </h2>
-
-                    <p>
-                        Kingda xây dựng hệ thống nghiên cứu, kiểm tra và sản xuất phục vụ các yêu cầu
-                        ứng dụng vật liệu chuyên sâu.
-                    </p>
-                </div>
-
-                <div class="about-capability__grid">
-                    <article class="about-capability-card" data-aos="fade-up">
-                        <div class="about-capability-card__image">
-                            <img src="{{ asset('images/about/nang-luc-rd.jpg') }}" alt="Năng lực R&D">
-                        </div>
-
-                        <div class="about-capability-card__body">
-                            <h3>Năng lực R&D kỹ thuật</h3>
-                            <p>
-                                Đội ngũ nghiên cứu và phát triển có khả năng cung cấp giải pháp hệ thống,
-                                đáp ứng nhu cầu tùy chỉnh của khách hàng.
-                            </p>
-                        </div>
-                    </article>
-
-                    <article class="about-capability-card" data-aos="fade-up" data-aos-delay="120">
-                        <div class="about-capability-card__image">
-                            <img src="{{ asset('images/about/phong-thi-nghiem.jpg') }}" alt="Phòng thí nghiệm">
-                        </div>
-
-                        <div class="about-capability-card__body">
-                            <h3>Kiểm tra chất lượng</h3>
-                            <p>
-                                Thực hiện kiểm tra, phân tích hệ thống từ nguyên vật liệu đến sản phẩm hoàn thiện.
-                            </p>
-                        </div>
-                    </article>
-
-                    <article class="about-capability-card" data-aos="fade-up" data-aos-delay="240">
-                        <div class="about-capability-card__image">
-                            <img src="{{ asset('images/about/nang-luc-san-xuat.jpg') }}" alt="Năng lực sản xuất">
-                        </div>
-
-                        <div class="about-capability-card__body">
-                            <h3>Năng lực sản xuất</h3>
-                            <p>
-                                Hệ thống sản xuất và kho vận phục vụ nhu cầu cung ứng ổn định,
-                                phù hợp các đơn hàng quy mô và yêu cầu kỹ thuật khác nhau.
-                            </p>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-
-        {{-- CERTIFICATIONS --}}
-        <section class="about-section about-certifications">
-            <div class="about-container">
-                <div class="about-certifications__layout">
-                    <div class="about-certifications__content" data-aos="fade-right">
-                        <div class="about-section-label">Chứng nhận & sở hữu trí tuệ</div>
-
-                        <h2>
-                            Hệ thống chứng nhận năng lực và tài sản trí tuệ
-                        </h2>
-
-                        <p>
-                            Kingda chú trọng quản lý chất lượng, môi trường, an toàn lao động và đổi mới công nghệ,
-                            tạo nền tảng cho năng lực cạnh tranh dài hạn.
-                        </p>
-
-                        <div class="about-ip">
-                            <div>
-                                <strong>8</strong>
-                                <span>Bản quyền phần mềm</span>
-                            </div>
-
-                            <div>
-                                <strong>7</strong>
-                                <span>Bằng sáng chế hữu ích</span>
-                            </div>
-
-                            <div>
-                                <strong>16</strong>
-                                <span>Bằng sáng chế phát minh</span>
-                            </div>
-
-                            <div>
-                                <strong>31</strong>
-                                <span>Tổng tài sản trí tuệ</span>
-                            </div>
-                        </div>
+        @if(! empty($capabilities['items']))
+            <section class="about-section">
+                <div class="about-container">
+                    <div class="about-section-head about-section-head--center" data-aos="fade-up">
+                        <div class="about-section-label">{{ $capabilities['eyebrow'] ?? '' }}</div>
+                        <h2>{{ $capabilities['title'] ?? '' }}</h2>
+                        <p>{{ $capabilities['description'] ?? '' }}</p>
                     </div>
-
-                    <div class="about-certifications__cards" data-aos="fade-left">
-                        <article>
-                            <span>ISO</span>
-                            <h3>ISO 9001:2015</h3>
-                            <p>Hệ thống quản lý chất lượng.</p>
-                        </article>
-
-                        <article>
-                            <span>ISO</span>
-                            <h3>ISO 14001:2015</h3>
-                            <p>Hệ thống quản lý môi trường.</p>
-                        </article>
-
-                        <article>
-                            <span>ISO</span>
-                            <h3>ISO 45001:2018</h3>
-                            <p>An toàn và sức khỏe nghề nghiệp.</p>
-                        </article>
-
-                        <article>
-                            <span>UL</span>
-                            <h3>UL Certification</h3>
-                            <p>Năng lực đáp ứng tiêu chuẩn an toàn sản phẩm.</p>
-                        </article>
+                    <div class="about-capability__grid">
+                        @foreach($capabilities['items'] as $index => $item)
+                            @php($capabilityImage = $item['image'] ?: asset('images/about/' . ['nang-luc-rd.jpg', 'phong-thi-nghiem.jpg', 'nang-luc-san-xuat.jpg'][$index % 3]))
+                            <article class="about-capability-card" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+                                <div class="about-capability-card__image">
+                                    <img src="{{ $capabilityImage }}" alt="{{ $item['title'] ?? '' }}">
+                                </div>
+                                <div class="about-capability-card__body">
+                                    <h3>{{ $item['title'] ?? '' }}</h3>
+                                    <p>{{ $item['description'] ?? '' }}</p>
+                                </div>
+                            </article>
+                        @endforeach
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        @endif
 
-
-        {{-- PARTNERS --}}
-        @php
-            $homeCustomers = $sharedHomeSettings['customers'] ?? [];
-            $homeCustomerItems = collect($homeCustomers['items'] ?? [])->filter(fn ($item) => filled($item['name'] ?? null));
-        @endphp
+        @if(! empty($certificates['items']) || ! empty($intellectualProperty['items']))
+            <section class="about-section about-certifications">
+                <div class="about-container">
+                    <div class="about-certifications__layout">
+                        <div class="about-certifications__content" data-aos="fade-right">
+                            <div class="about-section-label">{{ $certificates['eyebrow'] ?? '' }}</div>
+                            <h2>{{ $certificates['title'] ?? '' }}</h2>
+                            <p>{{ $certificates['description'] ?? '' }}</p>
+                            <div class="about-ip">
+                                @foreach($intellectualProperty['items'] ?? [] as $item)
+                                    <div>
+                                        <strong>{{ $item['value'] ?? '' }}</strong>
+                                        <span>{{ $item['label'] ?? '' }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="about-certifications__cards" data-aos="fade-left">
+                            @foreach($certificates['items'] ?? [] as $item)
+                                <article>
+                                    <span>{{ $item['badge'] ?? '✓' }}</span>
+                                    <div>
+                                        <h3>{{ $item['title'] ?? '' }}</h3>
+                                        <p>{{ $item['description'] ?? '' }}</p>
+                                    </div>
+                                </article>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>
+        @endif
 
         <section class="about-section about-partners">
             <div class="about-container">
                 <div class="about-section-head about-section-head--center" data-aos="fade-up">
-                    <div class="about-section-label">{{ $homeCustomers['eyebrow'] ?? 'Khách hàng & đối tác' }}</div>
-
-                    <h2>
-                        {{ $homeCustomers['title'] ?? 'Hợp tác cùng các thương hiệu và chuỗi cung ứng công nghệ' }}
-                    </h2>
-
-                    <p>
-                        {{ $homeCustomers['description'] ?? 'Sản phẩm của Kingda được ứng dụng trong nhiều nhóm khách hàng thuộc lĩnh vực điện tử 3C, linh kiện ô tô và vật liệu công nghiệp.' }}
-                    </p>
+                    <div class="about-section-label">{{ $customers['eyebrow'] ?? '' }}</div>
+                    <h2>{{ $customers['title'] ?? '' }}</h2>
+                    <p>{{ $customers['description'] ?? '' }}</p>
                 </div>
-
-                @if($homeCustomerItems->isNotEmpty())
+                @if(! empty($customers['items']))
                     <div class="about-partners__grid" data-aos="fade-up">
-                        @foreach($homeCustomerItems as $item)
+                        @foreach($customers['items'] as $item)
                             @php($itemUrl = $item['url'] ?? null)
-
                             @if($itemUrl)
                                 <a href="{{ $itemUrl }}" class="about-partners__item" aria-label="{{ $item['name'] }}" target="_blank" rel="noopener">
                             @else
                                 <div class="about-partners__item">
                             @endif
-
                             @if(! empty($item['logo']))
                                 <img src="{{ $item['logo'] }}" alt="{{ $item['name'] }}">
                             @else
                                 <span>{{ $item['name'] }}</span>
                             @endif
-
                             @if($itemUrl)
                                 </a>
                             @else
@@ -482,34 +256,22 @@
             </div>
         </section>
 
-
-        {{-- CTA --}}
         <section class="about-cta">
             <div class="about-container">
                 <div class="about-cta__inner" data-aos="fade-up">
                     <div>
-                        <span>Kingda Technology</span>
-
-                        <h2>
-                            Cần tư vấn giải pháp mực in, sơn và vật liệu ứng dụng?
-                        </h2>
-
-                        <p>
-                            Liên hệ Kingda để được tư vấn giải pháp phù hợp với yêu cầu sản phẩm,
-                            quy trình sản xuất và tiêu chuẩn kỹ thuật của doanh nghiệp.
-                        </p>
+                        <span>{{ $contact['eyebrow'] ?? '' }}</span>
+                        <h2>{{ $contact['title'] ?? '' }}</h2>
+                        <p>{{ $contact['description'] ?? '' }}</p>
                     </div>
-
-                    <a href="{{ url('/lien-he') }}" class="about-btn about-btn--light">
-                        Liên hệ tư vấn
+                    <a href="{{ $contactButtonUrl }}" class="about-btn about-btn--light">
+                        {{ $contact['button_label'] ?? '' }}
                     </a>
                 </div>
             </div>
         </section>
-
     </main>
 @endsection
-
 
 @push('styles')
     <style>
@@ -1199,9 +961,30 @@
             background: rgba(255, 255, 255, .18);
         }
 
+        .about-certifications__cards img {
+            display: block;
+            max-width: 150px;
+            max-height: 82px;
+            margin: -6px 0 18px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .92);
+            padding: 10px;
+        }
+
         .about-certifications__cards h3 {
             margin: 0 0 10px;
             font-size: 24px;
+        }
+
+        .about-certifications__cards h3 a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .about-certifications__cards h3 a:hover {
+            text-decoration: underline;
+            text-underline-offset: 4px;
         }
 
         .about-certifications__cards p {

@@ -6,7 +6,7 @@
     $intro = $settings['intro'] ?? [];
     $industrySection = $settings['industries'] ?? [];
     $productSection = $settings['products'] ?? [];
-    $capabilities = $settings['capabilities'] ?? [];
+    $capabilities = $aboutCapabilities ?? $settings['capabilities'] ?? [];
     $certifications = $settings['certifications'] ?? [];
     $advantages = $settings['advantages'] ?? [];
     $customers = $settings['customers'] ?? [];
@@ -436,47 +436,55 @@
     @endif
 
     @if (!empty($capabilities['items']))
-        <section class="bg-white py-20">
+        <section class="bg-white py-24">
             <div class="mx-auto max-w-7xl px-4">
                 <div class="mx-auto max-w-3xl text-center">
-                    <p class="text-sm font-extrabold uppercase text-primary-dark">{{ $capabilities['eyebrow'] ?? '' }}</p>
-                    <h2 class="mt-3 text-3xl font-extrabold uppercase text-[#17110a] md:text-4xl">
-                        {{ $capabilities['title'] ?? '' }}</h2>
-                    <div class="mx-auto mt-4 h-1 w-16 rounded bg-primary-dark"></div>
-                    <p class="mt-5 leading-7 text-slate-600">{{ $capabilities['description'] ?? '' }}</p>
+                    <p class="text-sm font-extrabold uppercase tracking-wide text-primary-dark">
+                        {{ $capabilities['eyebrow'] ?? '' }}
+                    </p>
+
+                    <h2 class="mt-3 text-3xl font-black leading-tight text-[#5f0000] md:text-4xl">
+                        {{ $capabilities['title'] ?? '' }}
+                    </h2>
+
+                    @if (!empty($capabilities['description']))
+                        <p class="mx-auto mt-5 max-w-2xl leading-7 text-[#75615c]">
+                            {{ $capabilities['description'] }}
+                        </p>
+                    @endif
                 </div>
 
                 <div class="mt-12 grid gap-6 md:grid-cols-3">
                     @foreach ($capabilities['items'] as $index => $item)
-                        <article
-                            class="group overflow-hidden rounded bg-white shadow ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl">
-                            <div
-                                class="relative flex h-48 items-end overflow-hidden bg-[linear-gradient(135deg,rgba(23,17,10,.96)_0%,rgba(159,15,22,.82)_58%,rgba(215,25,32,.72)_100%)] p-6 text-white">
-                                @if (!empty($item['image']))
-                                    <img src="{{ $item['image'] }}" alt="{{ $item['title'] ?? '' }}"
-                                        class="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-500 group-hover:scale-105">
-                                    <div
-                                        class="absolute inset-0 bg-[linear-gradient(0deg,rgba(23,17,10,.82),rgba(159,15,22,.34))]">
-                                    </div>
+                        @php
+                            $capabilityFallbackImages = [
+                                asset('images/about/nang-luc-rd.jpg'),
+                                asset('images/about/phong-thi-nghiem.jpg'),
+                                asset('images/about/nang-luc-san-xuat.jpg'),
+                            ];
+                            $capabilityImage = $item['image'] ?? $capabilityFallbackImages[$index] ?? null;
+                        @endphp
+
+                        <article class="group overflow-hidden rounded-[30px] border border-primary/15 bg-white shadow-[0_20px_70px_rgba(120,0,0,.08)]">
+                            <div class="h-[250px] overflow-hidden bg-red-50">
+                                @if ($capabilityImage)
+                                    <img src="{{ $capabilityImage }}" alt="{{ $item['title'] ?? '' }}"
+                                        class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
                                 @else
-                                    <div
-                                        class="absolute -right-8 -top-8 text-9xl text-white/16 transition duration-300 group-hover:scale-110">
+                                    <div class="flex h-full items-center justify-center text-6xl text-primary/30">
                                         <i class="fa-solid {{ $item['icon'] ?? 'fa-industry' }}"></i>
                                     </div>
                                 @endif
-                                <div class="relative z-10 flex items-center gap-4">
-                                    <div
-                                        class="flex size-16 items-center justify-center rounded bg-white text-3xl text-primary-dark shadow-lg">
-                                        <i class="fa-solid {{ $item['icon'] ?? 'fa-industry' }}"></i>
-                                    </div>
-                                    <div class="text-sm font-extrabold uppercase tracking-wide text-red-100">
-                                        {{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</div>
-                                </div>
                             </div>
+
                             <div class="p-7">
-                                <h3 class="text-xl font-extrabold leading-tight text-slate-950">{{ $item['title'] ?? '' }}
+                                <h3 class="text-[22px] font-black leading-tight text-[#5f0000]">
+                                    {{ $item['title'] ?? '' }}
                                 </h3>
-                                <p class="mt-4 text-sm leading-7 text-slate-600">{{ $item['description'] ?? '' }}</p>
+
+                                <p class="mt-3 leading-7 text-[#75615c]">
+                                    {{ $item['description'] ?? '' }}
+                                </p>
                             </div>
                         </article>
                     @endforeach

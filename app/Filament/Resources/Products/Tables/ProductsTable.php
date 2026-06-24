@@ -27,17 +27,6 @@ class ProductsTable
                 TextColumn::make('sku')
                     ->label('SKU')
                     ->searchable(),
-                TextColumn::make('price')
-                    ->label('Giá')
-                    ->money('VND')
-                    ->sortable(),
-                TextColumn::make('sale_price')
-                    ->label('Giá KM')
-                    ->money('VND')
-                    ->sortable(),
-                TextColumn::make('unit')
-                    ->label('Đơn vị')
-                    ->searchable(),
                 IconColumn::make('is_featured')
                     ->label('Nổi bật')
                     ->boolean(),

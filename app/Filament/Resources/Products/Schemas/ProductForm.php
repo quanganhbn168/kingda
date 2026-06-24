@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Products\Schemas;
 use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Models\Category;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -66,17 +65,6 @@ class ProductForm
                         ->preload(),
                     TextInput::make('sku')
                         ->label('SKU')
-                        ->maxLength(255),
-                    TextInput::make('price')
-                        ->label('Giá')
-                        ->numeric()
-                        ->prefix('₫'),
-                    TextInput::make('sale_price')
-                        ->label('Giá khuyến mãi')
-                        ->numeric()
-                        ->prefix('₫'),
-                    TextInput::make('unit')
-                        ->label('Đơn vị')
                         ->maxLength(255),
                     TextInput::make('sort_order')
                         ->label('Thứ tự')
@@ -156,8 +144,6 @@ class ProductForm
                         ->label('Slug')
                         ->placeholder('Tự sinh khi lưu nếu để trống')
                         ->maxLength(255),
-                    DateTimePicker::make('published_at')
-                        ->label('Ngày xuất bản'),
                     Textarea::make('description')
                         ->label('Mô tả ngắn')
                         ->columnSpanFull(),
@@ -172,13 +158,9 @@ class ProductForm
                         ->default(true),
                 ]),
             Section::make('Nội dung trang chi tiết')
-                ->description('Các trường này đổ trực tiếp ra trang detail sản phẩm: ứng dụng, nền vật liệu, quy trình, FAQ và các khối tư vấn.')
+                ->description('Các trường này được hiển thị trực tiếp trên trang chi tiết sản phẩm.')
                 ->columns(2)
                 ->schema([
-                    Textarea::make('blocks.overview')
-                        ->label('Tổng quan chi tiết')
-                        ->rows(4)
-                        ->columnSpanFull(),
                     TagsInput::make('blocks.applications')
                         ->label('Ứng dụng')
                         ->placeholder('Nhập một ứng dụng rồi Enter')
@@ -191,11 +173,6 @@ class ProductForm
                         ->label('Đặc tính kỹ thuật')
                         ->placeholder('Nhập một đặc tính rồi Enter')
                         ->columnSpanFull(),
-                    Textarea::make('blocks.process')
-                        ->label('Quy trình / cấu trúc')
-                        ->helperText('Có thể ngăn cách các bước bằng dấu ; hoặc ->')
-                        ->rows(4)
-                        ->columnSpanFull(),
                     TagsInput::make('blocks.consulting_inputs')
                         ->label('Thông tin khách cần chuẩn bị')
                         ->placeholder('Nền vật liệu, công nghệ, yêu cầu thành phẩm...')
@@ -203,59 +180,6 @@ class ProductForm
                     TagsInput::make('blocks.storage_notes')
                         ->label('Lưu ý bảo quản')
                         ->placeholder('Nhập một lưu ý rồi Enter')
-                        ->columnSpanFull(),
-                    Repeater::make('blocks.selection_matrix')
-                        ->label('Ma trận lựa chọn vật liệu')
-                        ->schema([
-                            TextInput::make('criteria')
-                                ->label('Tiêu chí')
-                                ->required(),
-                            Textarea::make('question')
-                                ->label('Câu hỏi cần làm rõ')
-                                ->rows(2)
-                                ->required(),
-                            Textarea::make('decision')
-                                ->label('Hướng chọn vật liệu')
-                                ->rows(2)
-                                ->required(),
-                        ])
-                        ->columns(3)
-                        ->collapsible()
-                        ->reorderable()
-                        ->columnSpanFull(),
-                    Repeater::make('blocks.problem_solving')
-                        ->label('Vấn đề và hướng xử lý')
-                        ->schema([
-                            TextInput::make('problem')
-                                ->label('Vấn đề')
-                                ->required(),
-                            Textarea::make('reason')
-                                ->label('Nguyên nhân thường gặp')
-                                ->rows(2)
-                                ->required(),
-                            Textarea::make('solution')
-                                ->label('Hướng xử lý')
-                                ->rows(2)
-                                ->required(),
-                        ])
-                        ->columns(3)
-                        ->collapsible()
-                        ->reorderable()
-                        ->columnSpanFull(),
-                    Repeater::make('blocks.service_flow')
-                        ->label('Quy trình triển khai cùng Kingda')
-                        ->schema([
-                            TextInput::make('title')
-                                ->label('Tiêu đề')
-                                ->required(),
-                            Textarea::make('text')
-                                ->label('Mô tả')
-                                ->rows(2)
-                                ->required(),
-                        ])
-                        ->columns(2)
-                        ->collapsible()
-                        ->reorderable()
                         ->columnSpanFull(),
                     Repeater::make('blocks.faq')
                         ->label('FAQ sản phẩm')
@@ -266,21 +190,6 @@ class ProductForm
                             Textarea::make('answer')
                                 ->label('Trả lời')
                                 ->rows(3)
-                                ->required(),
-                        ])
-                        ->columns(2)
-                        ->collapsible()
-                        ->reorderable()
-                        ->columnSpanFull(),
-                    Repeater::make('blocks.strengths')
-                        ->label('Lý do chọn Kingda')
-                        ->schema([
-                            TextInput::make('title')
-                                ->label('Tiêu đề')
-                                ->required(),
-                            Textarea::make('text')
-                                ->label('Mô tả')
-                                ->rows(2)
                                 ->required(),
                         ])
                         ->columns(2)
@@ -303,15 +212,6 @@ class ProductForm
                         ->disk('public')
                         ->visibility('public')
                         ->image(),
-                    SpatieMediaLibraryFileUpload::make('gallery')
-                        ->label('Thư viện ảnh')
-                        ->collection('gallery')
-                        ->disk('public')
-                        ->visibility('public')
-                        ->image()
-                        ->multiple()
-                        ->reorderable()
-                        ->columnSpanFull(),
                 ]),
             Section::make('SEO')
                 ->columns(2)

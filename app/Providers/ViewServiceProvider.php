@@ -12,6 +12,7 @@ use App\Models\Menu;
 use App\Models\PageTranslation;
 use App\Models\PostTranslation;
 use App\Models\ProductTranslation;
+use App\Services\Frontend\ProductCategoryService;
 use App\Settings\ContactSettings;
 use App\Settings\IntegrationSettings;
 use App\Settings\SiteSettings;
@@ -85,6 +86,9 @@ class ViewServiceProvider extends ServiceProvider
             ])
             ->first();
 
+            $headerMenuItems = $headerMenu?->items ?? collect();
+            app(ProductCategoryService::class)->replaceProductMenuChildren($headerMenuItems, $locale);
+
             $footerMenu = Menu::query()
             ->where('location', MenuLocation::Footer->value)
             ->where('is_active', true)
@@ -110,7 +114,7 @@ class ViewServiceProvider extends ServiceProvider
                 'homeUrl' => $locale === 'vi' ? url('/') : url('/' . $locale),
                 'contactUrl' => $locale === 'vi' ? url('/lien-he') : url('/' . $locale . '/contact'),
 
-                'headerMenuItems' => $headerMenu?->items ?? collect(),
+                'headerMenuItems' => $headerMenuItems,
                 'footerMenuItems' => $footerMenu?->items ?? collect(),
 
                 'localeSwitcher' => $languageItems,

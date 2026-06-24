@@ -17,6 +17,7 @@ Route::middleware('set-locale')->group(function (): void {
     Route::get('/linh-vuc', [PageController::class, 'industries'])->name('industries.index');
     Route::get('/linh-vuc/{slug}', [PageController::class, 'industryDetail'])->name('industries.show');
     Route::get('/lien-he', [PageController::class, 'contact'])->name('contact');
+    Route::post('/lien-he', [PageController::class, 'storeContact'])->middleware('throttle:5,1')->name('contact.store');
     Route::get('/gioi-thieu', [PageController::class, 'about'])->name('about');
     Route::redirect('/ve-chung-toi', '/gioi-thieu', 301);
 
@@ -37,6 +38,7 @@ Route::middleware('set-locale')->group(function (): void {
             Route::get('/industries/{slug}', [PageController::class, 'localizedIndustryDetail'])->name('localized.industries.show');
 
             Route::get('/contact', [PageController::class, 'contact'])->name('localized.contact');
+            Route::post('/contact', [PageController::class, 'storeContact'])->middleware('throttle:5,1')->name('localized.contact.store');
 
             Route::get('/about', [PageController::class, 'about'])->name('localized.about');
 

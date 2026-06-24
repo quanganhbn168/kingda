@@ -10,25 +10,13 @@ use Illuminate\Http\Request;
 
 class ProductCatalogService
 {
+    public function __construct(
+        private readonly ProductCategoryService $productCategories,
+    ) {}
+
     public function categories(string $locale)
     {
-        $categories = Category::query()
-            ->product()
-            ->active()
-            ->whereHas('translations', fn (Builder $query) => $query
-                ->where('locale', $locale)
-                ->where('is_published', true))
-            ->with([
-                'translation' => fn ($query) => $query->where('locale', $locale),
-                'children',
-            ])
-            ->withCount([
-                'products' => fn (Builder $query) => $query
-                    ->active()
-                    ->withPublishedTranslation($locale),
-            ])
-            ->ordered()
-            ->get();
+        $categories = $this->productCategories->all($locale);
 
         $categories->each(function (Category $category) use ($locale): void {
             $category->products_count = Product::query()
@@ -38,9 +26,7 @@ class ProductCatalogService
                 ->count();
         });
 
-        return $categories
-            ->filter(fn (Category $category): bool => $category->products_count > 0)
-            ->values();
+        return $categories->values();
     }
 
     public function listing(Request $request, string $locale, ?string $categorySlug = null): array
@@ -66,6 +52,7 @@ class ProductCatalogService
 
         return [
             'categories' => $categories,
+            'categoryTree' => $this->productCategories->tree($categories),
             'activeCategory' => $activeCategory,
             'products' => $products,
             'totalProductsCount' => Product::query()

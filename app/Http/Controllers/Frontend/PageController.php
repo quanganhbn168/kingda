@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Enums\ContactMessageStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\StoreContactMessageRequest;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Certificate;
+use App\Models\ContactMessage;
 use App\Models\Industry;
 use App\Models\Page;
 use App\Models\PageTranslation;
@@ -19,6 +22,7 @@ use App\Settings\AboutSettings;
 use App\Settings\ContactSettings;
 use App\Settings\HomeSettings;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
@@ -41,6 +45,19 @@ class PageController extends Controller
     public function contact(Request $request): View
     {
         return $this->renderContact(app()->getLocale());
+    }
+
+    public function storeContact(StoreContactMessageRequest $request): RedirectResponse
+    {
+        $data = $request->safe()->except('website');
+
+        ContactMessage::query()->create([
+            ...$data,
+            'source' => 'contact_page',
+            'status' => ContactMessageStatus::New->value,
+        ]);
+
+        return back()->with('contact_success', __('ui.contact.success'));
     }
 
     public function industries(Request $request): View
@@ -86,6 +103,7 @@ class PageController extends Controller
         return $this->render($page, $translation, [
             'homeSlides' => $this->homeSlides($locale),
             'homeSettings' => $this->homeSettings($locale),
+            'aboutCapabilities' => $this->aboutSettings($locale)['capabilities'] ?? [],
             'homeIndustries' => $this->homeIndustries($locale),
             'homeProductCategories' => $this->homeProductCategories($locale),
             'homePosts' => $this->homePosts($locale),

@@ -26,18 +26,62 @@
         <div class="mx-auto grid max-w-7xl gap-8 px-4 lg:grid-cols-[minmax(0,1fr)_26rem]">
             <div class="rounded bg-white p-8 shadow ring-1 ring-slate-200">
                 <h2 class="text-2xl font-extrabold text-slate-950">{{ __('ui.contact.request_title') }}</h2>
-                <form class="mt-8 grid gap-4">
+
+                @if(session('contact_success'))
+                    <div role="status" class="mt-6 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                        {{ session('contact_success') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div role="alert" class="mt-6 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                        <p class="font-extrabold">{{ __('ui.contact.validation_intro') }}</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ app()->getLocale() === 'vi' ? route('contact.store') : route('localized.contact.store', ['locale' => app()->getLocale()]) }}" class="mt-8 grid gap-4">
+                    @csrf
+
+                    <div class="absolute -left-[9999px]" aria-hidden="true">
+                        <label for="contact-website">Website</label>
+                        <input id="contact-website" type="text" name="website" value="" tabindex="-1" autocomplete="off">
+                    </div>
+
                     <div class="grid gap-4 md:grid-cols-2">
-                        <input type="text" name="name" placeholder="{{ __('ui.contact.name') }}" class="rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary">
-                        <input type="tel" name="phone" placeholder="{{ __('ui.contact.phone') }}" class="rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary">
+                        <div>
+                            <input type="text" name="name" value="{{ old('name') }}" maxlength="100" required autocomplete="name" placeholder="{{ __('ui.contact.name') }} *" class="w-full rounded border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->has('name') ? 'border-red-400' : 'border-slate-200' }}">
+                            @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <input type="tel" name="phone" value="{{ old('phone') }}" maxlength="30" autocomplete="tel" placeholder="{{ __('ui.contact.phone') }}" class="w-full rounded border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->has('phone') ? 'border-red-400' : 'border-slate-200' }}">
+                            @error('phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
                     </div>
                     <div class="grid gap-4 md:grid-cols-2">
-                        <input type="email" name="email" placeholder="{{ __('ui.contact.email') }}" class="rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary">
-                        <input type="text" name="company" placeholder="{{ __('ui.contact.company') }}" class="rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary">
+                        <div>
+                            <input type="email" name="email" value="{{ old('email') }}" maxlength="150" autocomplete="email" placeholder="{{ __('ui.contact.email') }}" class="w-full rounded border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->has('email') ? 'border-red-400' : 'border-slate-200' }}">
+                            @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <input type="text" name="company" value="{{ old('company') }}" maxlength="150" autocomplete="organization" placeholder="{{ __('ui.contact.company') }}" class="w-full rounded border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->has('company') ? 'border-red-400' : 'border-slate-200' }}">
+                            @error('company') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
                     </div>
-                    <input type="text" name="subject" placeholder="{{ __('ui.contact.subject') }}" class="rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary">
-                    <textarea name="message" rows="6" placeholder="{{ __('ui.contact.message') }}" class="rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary"></textarea>
-                    <button type="button" class="inline-flex w-fit items-center gap-2 rounded bg-primary px-6 py-3 text-sm font-extrabold text-white hover:bg-primary-dark">
+                    <div>
+                        <input type="text" name="subject" value="{{ old('subject') }}" maxlength="200" placeholder="{{ __('ui.contact.subject') }}" class="w-full rounded border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->has('subject') ? 'border-red-400' : 'border-slate-200' }}">
+                        @error('subject') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <textarea name="message" rows="6" maxlength="5000" required placeholder="{{ __('ui.contact.message') }} *" class="w-full rounded border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->has('message') ? 'border-red-400' : 'border-slate-200' }}">{{ old('message') }}</textarea>
+                        @error('message') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <p class="text-xs text-slate-500">{{ __('ui.contact.channel_hint') }}</p>
+                    <button type="submit" class="inline-flex w-fit items-center gap-2 rounded bg-primary px-6 py-3 text-sm font-extrabold text-white hover:bg-primary-dark">
                         {{ __('ui.actions.send') }}
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
