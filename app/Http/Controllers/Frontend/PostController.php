@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Post;
 use App\Services\Frontend\FrontendUrlBuilder;
 use App\Services\Frontend\ListingPageService;
@@ -49,15 +50,22 @@ class PostController extends Controller
     {
         $data = $this->catalog->listing($request, $locale, $categorySlug);
         $translation = $this->listingPages->translation($locale, 'news');
+        $activeCategory = $data['activeCategory'];
+        $seoTranslation = $activeCategory?->translation ?: $translation;
 
         return view('frontend.pages.templates.news', [
             ...$data,
             'translation' => $translation,
-            'alternateUrls' => $this->listingPages->alternateUrls('news'),
-            'ogImage' => null,
+            'seoTranslation' => $seoTranslation,
+            'alternateUrls' => $activeCategory
+                ? $this->categoryAlternateUrls($activeCategory)
+                : $this->listingPages->alternateUrls('news'),
+            'ogImage' => $activeCategory
+                ? $this->schema->resolveOgImage($seoTranslation)
+                : null,
             'schema' => $this->schema->collection(
-                $translation,
-                $data['activeCategory']?->translation?->name ?: __('ui.common.news'),
+                $seoTranslation,
+                $activeCategory?->translation?->name ?: __('ui.common.news'),
                 $data['posts']->getCollection()->map(fn (Post $post): array => [
                     'name' => $post->translation?->title,
                     'url' => $this->urls->post($post, $post->translation, $locale),
@@ -65,6 +73,7 @@ class PostController extends Controller
                 [
                     ['name' => __('ui.common.home'), 'url' => $this->urls->home($locale)],
                     ['name' => __('ui.common.news'), 'url' => $this->urls->listing('news', $locale)],
+                    ['name' => $activeCategory?->translation?->name, 'url' => $activeCategory?->translation?->public_url],
                 ]
             ),
         ]);
@@ -103,6 +112,19 @@ class PostController extends Controller
             ->filter(fn ($translation): bool => $translation->is_published)
             ->mapWithKeys(fn ($translation): array => [
                 $translation->locale => $this->urls->post($post, $translation, $translation->locale),
+            ])
+            ->filter()
+            ->all();
+    }
+
+    private function categoryAlternateUrls(Category $category): array
+    {
+        $category->loadMissing('translations');
+
+        return $category->translations
+            ->filter(fn ($translation): bool => $translation->is_published)
+            ->mapWithKeys(fn ($translation): array => [
+                $translation->locale => $this->urls->category($category, $translation, $translation->locale),
             ])
             ->filter()
             ->all();

@@ -37,6 +37,8 @@ class ProductCatalogService
             ? $categories->first(fn (Category $category): bool => $category->translation?->slug === $activeCategorySlug)
             : null;
 
+        abort_if(filled($activeCategorySlug) && ! $activeCategory, 404);
+
         $products = Product::query()
             ->active()
             ->withPublishedTranslation($locale)

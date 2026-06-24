@@ -15,6 +15,7 @@ use App\Models\ProductTranslation;
 use App\Services\Frontend\ProductCategoryService;
 use App\Settings\ContactSettings;
 use App\Settings\IntegrationSettings;
+use App\Settings\SeoSettings;
 use App\Settings\SiteSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
@@ -42,6 +43,7 @@ class ViewServiceProvider extends ServiceProvider
                 'siteSettings' => app(SiteSettings::class),
                 'contactSettings' => app(ContactSettings::class),
                 'integrationSettings' => app(IntegrationSettings::class),
+                'seoSettings' => app(SeoSettings::class),
                 'currentLocale' => $locale,
             ]);
         });

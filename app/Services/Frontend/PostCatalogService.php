@@ -50,6 +50,8 @@ class PostCatalogService
             ? $categories->first(fn (Category $category): bool => $category->translation?->slug === $activeCategorySlug)
             : null;
 
+        abort_if(filled($activeCategorySlug) && ! $activeCategory, 404);
+
         $posts = Post::query()
             ->active()
             ->withPublishedTranslation($locale)

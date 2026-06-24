@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
 use App\Services\Frontend\FrontendUrlBuilder;
 use App\Services\Frontend\ListingPageService;
@@ -49,15 +50,22 @@ class ProductController extends Controller
     {
         $data = $this->catalog->listing($request, $locale, $categorySlug);
         $translation = $this->listingPages->translation($locale, 'products');
+        $activeCategory = $data['activeCategory'];
+        $seoTranslation = $activeCategory?->translation ?: $translation;
 
         return view('frontend.pages.templates.products', [
             ...$data,
             'translation' => $translation,
-            'alternateUrls' => $this->listingPages->alternateUrls('products'),
-            'ogImage' => null,
+            'seoTranslation' => $seoTranslation,
+            'alternateUrls' => $activeCategory
+                ? $this->categoryAlternateUrls($activeCategory)
+                : $this->listingPages->alternateUrls('products'),
+            'ogImage' => $activeCategory
+                ? $this->schema->resolveOgImage($seoTranslation)
+                : null,
             'schema' => $this->schema->collection(
-                $translation,
-                $data['activeCategory']?->translation?->name ?: __('ui.common.products'),
+                $seoTranslation,
+                $activeCategory?->translation?->name ?: __('ui.common.products'),
                 $data['products']->getCollection()->map(fn (Product $product): array => [
                     'name' => $product->translation?->name,
                     'url' => $this->urls->product($product, $product->translation, $locale),
@@ -65,6 +73,7 @@ class ProductController extends Controller
                 [
                     ['name' => __('ui.common.home'), 'url' => $this->urls->home($locale)],
                     ['name' => __('ui.common.products'), 'url' => $this->urls->listing('products', $locale)],
+                    ['name' => $activeCategory?->translation?->name, 'url' => $activeCategory?->translation?->public_url],
                 ]
             ),
         ]);
@@ -103,6 +112,19 @@ class ProductController extends Controller
             ->filter(fn ($translation): bool => $translation->is_published)
             ->mapWithKeys(fn ($translation): array => [
                 $translation->locale => $this->urls->product($product, $translation, $translation->locale),
+            ])
+            ->filter()
+            ->all();
+    }
+
+    private function categoryAlternateUrls(Category $category): array
+    {
+        $category->loadMissing('translations');
+
+        return $category->translations
+            ->filter(fn ($translation): bool => $translation->is_published)
+            ->mapWithKeys(fn ($translation): array => [
+                $translation->locale => $this->urls->category($category, $translation, $translation->locale),
             ])
             ->filter()
             ->all();

@@ -1,19 +1,54 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 <head>
+    @php
+        $seo = $seoTranslation ?? $translation ?? null;
+        $seoTitle = data_get($seo, 'seo_title')
+            ?: data_get($seo, 'meta_title')
+            ?: data_get($seo, 'title')
+            ?: data_get($seo, 'name')
+            ?: ($seoSettings->default_seo_title ?? null)
+            ?: ($settings->site_name ?? config('app.name'));
+        $seoDescription = data_get($seo, 'seo_description')
+            ?: data_get($seo, 'meta_description')
+            ?: data_get($seo, 'description')
+            ?: data_get($seo, 'excerpt')
+            ?: ($seoSettings->default_seo_description ?? null);
+        $ogTitle = data_get($seo, 'og_title') ?: $seoTitle;
+        $ogDescription = data_get($seo, 'og_description') ?: $seoDescription;
+        $canonicalUrl = data_get($seo, 'canonical_url')
+            ?: data_get($seo, 'public_url')
+            ?: url()->current();
+        $robots = data_get($seo, 'meta_robots')
+            ?: ($seoSettings->default_robots ?? null)
+            ?: 'index,follow';
+        $resolvedOgImage = $ogImage ?? null;
+
+        if (! $resolvedOgImage && $seo && method_exists($seo, 'getFirstMediaUrl')) {
+            $resolvedOgImage = $seo->getFirstMediaUrl('og_image')
+                ?: $seo->getFirstMediaUrl('hero')
+                ?: $seo->getFirstMediaUrl('thumbnail');
+        }
+
+        $resolvedOgImage = $resolvedOgImage
+            ?: (filled($seoSettings->default_og_image ?? null)
+                ? asset('storage/' . ltrim($seoSettings->default_og_image, '/'))
+                : null);
+    @endphp
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $translation->seo_title ?? $translation->title ?? $translation->name ?? $settings->site_name ?? config('app.name') }}</title>
+    <title>{{ $seoTitle }}</title>
 
-    @if(! empty($translation->seo_description ?? $translation->description ?? null))
-        <meta name="description" content="{{ $translation->seo_description ?? $translation->description }}">
+    @if(filled($seoDescription))
+        <meta name="description" content="{{ $seoDescription }}">
     @endif
 
-    <meta name="robots" content="{{ $translation->meta_robots ?? 'index,follow' }}">
+    <meta name="robots" content="{{ $robots }}">
 
-    <link rel="canonical" href="{{ $translation->canonical_url ?? $translation->public_url ?? url()->current() }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
 
     @foreach($alternateUrls ?? [] as $locale => $url)
         @if(! empty($url))
@@ -34,35 +69,27 @@
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:locale" content="{{ app()->getLocale() === 'vi' ? 'vi_VN' : app()->getLocale() }}">
     <meta property="og:site_name" content="{{ $settings->site_name ?? config('app.name') }}">
-    <meta property="og:title" content="{{ $translation->og_title ?? $translation->seo_title ?? $translation->title ?? $translation->name ?? $settings->site_name ?? config('app.name') }}">
+    <meta property="og:title" content="{{ $ogTitle }}">
 
-    @if(! empty($translation->og_description ?? $translation->seo_description ?? $translation->description ?? null))
-        <meta property="og:description" content="{{ $translation->og_description ?? $translation->seo_description ?? $translation->description }}">
+    @if(filled($ogDescription))
+        <meta property="og:description" content="{{ $ogDescription }}">
     @endif
 
-    <meta property="og:url" content="{{ $translation->public_url ?? url()->current() }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
 
-    @if(! empty($ogImage))
-        <meta property="og:image" content="{{ $ogImage }}">
-    @elseif(isset($translation) && method_exists($translation, 'getFirstMediaUrl') && $translation->getFirstMediaUrl('og_image'))
-        <meta property="og:image" content="{{ $translation->getFirstMediaUrl('og_image') }}">
-    @elseif(isset($translation) && method_exists($translation, 'getFirstMediaUrl') && $translation->getFirstMediaUrl('hero'))
-        <meta property="og:image" content="{{ $translation->getFirstMediaUrl('hero') }}">
+    @if($resolvedOgImage)
+        <meta property="og:image" content="{{ $resolvedOgImage }}">
     @endif
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $translation->og_title ?? $translation->seo_title ?? $translation->title ?? $translation->name ?? $settings->site_name ?? config('app.name') }}">
+    <meta name="twitter:title" content="{{ $ogTitle }}">
 
-    @if(! empty($translation->og_description ?? $translation->seo_description ?? $translation->description ?? null))
-        <meta name="twitter:description" content="{{ $translation->og_description ?? $translation->seo_description ?? $translation->description }}">
+    @if(filled($ogDescription))
+        <meta name="twitter:description" content="{{ $ogDescription }}">
     @endif
 
-    @if(! empty($ogImage))
-        <meta name="twitter:image" content="{{ $ogImage }}">
-    @elseif(isset($translation) && method_exists($translation, 'getFirstMediaUrl') && $translation->getFirstMediaUrl('og_image'))
-        <meta name="twitter:image" content="{{ $translation->getFirstMediaUrl('og_image') }}">
-    @elseif(isset($translation) && method_exists($translation, 'getFirstMediaUrl') && $translation->getFirstMediaUrl('hero'))
-        <meta name="twitter:image" content="{{ $translation->getFirstMediaUrl('hero') }}">
+    @if($resolvedOgImage)
+        <meta name="twitter:image" content="{{ $resolvedOgImage }}">
     @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
