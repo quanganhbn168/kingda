@@ -94,7 +94,7 @@
                     <div class="mt-5 space-y-4 text-sm leading-6 text-slate-600">
                         <div class="flex gap-3">
                             <i class="fa-solid fa-location-dot mt-1 text-primary"></i>
-                            <span>{{ $contactSettings->default_address }}</span>
+                            <span>{{ $contactSettings->address }}</span>
                         </div>
                         <div class="flex gap-3">
                             <i class="fa-solid fa-envelope mt-1 text-primary"></i>

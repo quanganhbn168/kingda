@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Pages;
 
+use App\Filament\Actions\QuickCatalogImportActions;
 use App\Filament\Resources\Products\ProductResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -13,6 +14,7 @@ class ListProducts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            QuickCatalogImportActions::products(),
             CreateAction::make(),
         ];
     }
