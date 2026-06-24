@@ -42,6 +42,7 @@
 
 <aside
         class="kd-floating-contacts"
+        :class="{ 'kd-floating-contacts--has-top': showBackToTop }"
         aria-label="{{ app()->getLocale() === 'vi' ? 'Liên hệ nhanh' : 'Quick contact' }}"
         x-data="{ wechatOpen: false, showBackToTop: false }"
         x-init="showBackToTop = window.scrollY > 360"

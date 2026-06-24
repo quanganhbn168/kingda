@@ -55,6 +55,21 @@
     border-radius: 0 0 14px 14px;
 }
 
+.kd-floating-contact-wrap:last-of-type .kd-floating-contact {
+    border-bottom: 0;
+    border-radius: 0 0 14px 14px;
+}
+
+.kd-floating-contacts--has-top .kd-floating-contact-wrap:last-of-type .kd-floating-contact {
+    border-bottom: 1px solid rgb(255 255 255 / 22%);
+    border-radius: 0;
+}
+
+.kd-floating-contact--top {
+    border-bottom: 0;
+    border-radius: 0 0 14px 14px;
+}
+
 .kd-floating-contact:hover,
 .kd-floating-contact:focus-visible {
     z-index: 1;
