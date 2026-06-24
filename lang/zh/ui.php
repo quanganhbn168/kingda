@@ -91,7 +91,17 @@ return [
         'information_to_prepare' => '需准备的信息',
         'default_consulting_inputs' => ['当前使用的基材。', '期望的成品要求。', '现有设备和加工条件。'],
     ],
-    'post_detail' => [
+    'product_consultation' => [
+        'title' => '产品咨询',
+        'description' => '请留下您的电话号码，金达将联系您并提供合适的产品建议。',
+        'interested_product' => '感兴趣的产品',
+        'subject' => '产品咨询：:product',
+        'default_message' => '客户申请咨询产品：:product',
+        'message_placeholder' => '咨询需求或说明（选填）',
+        'submit' => '提交咨询',
+        'success' => '咨询请求已提交，金达将尽快与您联系。',
+        'validation_intro' => '请检查以下信息：',
+    ],    'post_detail' => [
         'reading_time' => '阅读约 :count 分钟',
         'article_information' => '文章信息',
         'category' => '分类：',

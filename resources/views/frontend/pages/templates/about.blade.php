@@ -337,10 +337,9 @@
         /* HERO */
         .about-hero {
             position: relative;
-            min-height: 760px;
             display: flex;
             align-items: center;
-            padding: 120px 0 90px;
+            padding: 20px;
             isolation: isolate;
             background:
                 radial-gradient(circle at 85% 20%, rgba(246, 196, 0, .22), transparent 34%),
@@ -361,7 +360,7 @@
 
         .about-hero__inner {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 520px;
+            grid-template-columns: 400px minmax(0, 1fr);
             gap: 64px;
             align-items: center;
         }
@@ -369,7 +368,7 @@
         .about-hero__content h1 {
             margin: 0 0 24px;
             color: var(--kingda-heading);
-            font-size: clamp(42px, 5.8vw, 76px);
+            font-size: clamp(42px, 2.8vw, 76px);
             line-height: 1.02;
             letter-spacing: -0.06em;
         }

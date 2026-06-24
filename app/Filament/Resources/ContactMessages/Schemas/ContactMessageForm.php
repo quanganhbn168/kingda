@@ -3,10 +3,9 @@
 namespace App\Filament\Resources\ContactMessages\Schemas;
 
 use App\Enums\ContactMessageStatus;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ContactMessageForm
@@ -15,30 +14,20 @@ class ContactMessageForm
     {
         return $schema
             ->components([
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('phone')
-                    ->tel(),
-                TextInput::make('email')
-                    ->label('Email address')
-                    ->email(),
-                TextInput::make('company'),
-                TextInput::make('subject'),
-                Textarea::make('message')
-                    ->required()
-                    ->columnSpanFull(),
-                TextInput::make('source'),
-                TextInput::make('related_type'),
-                TextInput::make('related_id')
-                    ->numeric(),
-                Select::make('status')
-                    ->label('Trạng thái')
-                    ->options(ContactMessageStatus::options())
-                    ->required()
-                    ->default(ContactMessageStatus::New->value),
-                Textarea::make('admin_note')
-                    ->columnSpanFull(),
-                DateTimePicker::make('read_at'),
+                Section::make('Xử lý liên hệ')
+                    ->description('Cập nhật tiến độ và ghi chú nội bộ. Thông tin khách gửi được giữ nguyên.')
+                    ->schema([
+                        Select::make('status')
+                            ->label('Trạng thái xử lý')
+                            ->options(ContactMessageStatus::options())
+                            ->required()
+                            ->default(ContactMessageStatus::New->value),
+                        Textarea::make('admin_note')
+                            ->label('Ghi chú nội bộ')
+                            ->placeholder('Kết quả trao đổi, người phụ trách, lịch hẹn...')
+                            ->rows(6)
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 }

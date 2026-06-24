@@ -65,6 +65,14 @@ class MenuItem extends Model
         return $this->children()->with('childrenRecursive');
     }
 
+    public function activeChildrenRecursive(): HasMany
+    {
+        return $this->children()
+            ->where('locale', app()->getLocale())
+            ->where('is_active', true)
+            ->with('activeChildrenRecursive');
+    }
+
     public function linkable(): MorphTo
     {
         return $this->morphTo();
@@ -151,7 +159,7 @@ class MenuItem extends Model
             $path = parse_url($url, PHP_URL_PATH) ?: '/';
             $query = parse_url($url, PHP_URL_QUERY);
 
-            return $query ? $path . '?' . $query : $path;
+            return $query ? $path.'?'.$query : $path;
         }
 
         return $url;

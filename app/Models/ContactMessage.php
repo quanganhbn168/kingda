@@ -10,8 +10,11 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class ContactMessage extends Model
 {
     public const STATUS_NEW = 'new';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_DONE = 'done';
+
     public const STATUS_SPAM = 'spam';
 
     protected $fillable = [
@@ -38,8 +41,43 @@ class ContactMessage extends Model
         return $this->morphTo();
     }
 
+    public function getSourceLabelAttribute(): string
+    {
+        return match ($this->source) {
+            'product_detail' => 'Chi tiết sản phẩm',
+            'service_detail' => 'Chi tiết dịch vụ',
+            'contact_page' => 'Trang liên hệ',
+            default => filled($this->source) ? str($this->source)->replace('_', ' ')->title()->toString() : 'Website',
+        };
+    }
+
+    public function getRelatedLabelAttribute(): ?string
+    {
+        $related = $this->relationLoaded('related') ? $this->related : $this->related()->first();
+
+        if (! $related) {
+            return null;
+        }
+
+        if ($related instanceof Product) {
+            $translation = $related->translationFor(app()->getLocale())->first()
+                ?: $related->translationFor('vi')->first();
+
+            return $translation?->name ?: $related->sku ?: 'Sản phẩm #'.$related->getKey();
+        }
+
+        return $related->name
+            ?? $related->title
+            ?? $related->code
+            ?? class_basename($related).' #'.$related->getKey();
+    }
+
     public function markAsRead(): bool
     {
+        if ($this->read_at) {
+            return true;
+        }
+
         return $this->forceFill([
             'read_at' => now(),
         ])->save();

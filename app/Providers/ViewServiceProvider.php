@@ -7,7 +7,6 @@ use App\Enums\Locale;
 use App\Enums\MenuLocation;
 use App\Models\CategoryTranslation;
 use App\Models\IndustryTranslation;
-use Illuminate\Support\ServiceProvider;
 use App\Models\Menu;
 use App\Models\PageTranslation;
 use App\Models\PostTranslation;
@@ -19,6 +18,7 @@ use App\Settings\SeoSettings;
 use App\Settings\SiteSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class ViewServiceProvider extends ServiceProvider
 {
@@ -71,38 +71,57 @@ class ViewServiceProvider extends ServiceProvider
             }
 
             $headerMenu = Menu::query()
-            ->where('location', MenuLocation::Header->value)
-            ->where('is_active', true)
-            ->with([
-                'items' => fn ($query) => $query
-                ->whereNull('parent_id')
-                ->where('locale', $locale)
+                ->where('location', MenuLocation::Header->value)
                 ->where('is_active', true)
                 ->with([
-                    'childrenRecursive' => fn ($query) => $query
-                    ->where('locale', $locale)
-                    ->where('is_active', true)
-                    ->orderBy('sort_order'),
+                    'items' => fn ($query) => $query
+                        ->whereNull('parent_id')
+                        ->where('locale', $locale)
+                        ->where('is_active', true)
+                        ->with([
+                            'childrenRecursive' => fn ($query) => $query
+                                ->where('locale', $locale)
+                                ->where('is_active', true)
+                                ->orderBy('sort_order'),
+                        ])
+                        ->orderBy('sort_order'),
                 ])
-                ->orderBy('sort_order'),
-            ])
-            ->first();
+                ->first();
 
             $headerMenuItems = $headerMenu?->items ?? collect();
             app(ProductCategoryService::class)->replaceProductMenuChildren($headerMenuItems, $locale);
 
-            $footerMenu = Menu::query()
-            ->where('location', MenuLocation::Footer->value)
-            ->where('is_active', true)
-            ->with([
-                'items' => fn ($query) => $query
-                ->whereNull('parent_id')
-                ->where('locale', $locale)
-                ->where('is_active', true)
-                ->orderBy('sort_order'),
-            ])
-            ->first();
+            $siteSettings = app(SiteSettings::class);
+            $loadFooterMenu = function (?int $menuId, bool $fallbackToFooter = false) use ($locale): ?Menu {
+                if (blank($menuId) && ! $fallbackToFooter) {
+                    return null;
+                }
 
+                $query = Menu::query()->where('is_active', true);
+
+                if (filled($menuId)) {
+                    $query->whereKey($menuId);
+                } else {
+                    $query->where('location', MenuLocation::Footer->value);
+                }
+
+                return $query
+                    ->with([
+                        'items' => fn ($query) => $query
+                            ->whereNull('parent_id')
+                            ->where('locale', $locale)
+                            ->where('is_active', true)
+                            ->with('activeChildrenRecursive')
+                            ->orderBy('sort_order'),
+                    ])
+                    ->first();
+            };
+
+            $footerMenu1 = $loadFooterMenu(
+                $siteSettings->footer_menu_1_id ?: $siteSettings->footer_menu_id,
+                true,
+            );
+            $footerMenu2 = $loadFooterMenu($siteSettings->footer_menu_2_id);
             $languageItems = collect(Locale::publicOptions())
                 ->map(fn (array $item): array => [
                     ...$item,
@@ -113,11 +132,13 @@ class ViewServiceProvider extends ServiceProvider
                 ->all();
 
             $payloads[$cacheKey] = [
-                'homeUrl' => $locale === 'vi' ? url('/') : url('/' . $locale),
-                'contactUrl' => $locale === 'vi' ? url('/lien-he') : url('/' . $locale . '/contact'),
+                'homeUrl' => $locale === 'vi' ? url('/') : url('/'.$locale),
+                'contactUrl' => $locale === 'vi' ? url('/lien-he') : url('/'.$locale.'/contact'),
 
                 'headerMenuItems' => $headerMenuItems,
-                'footerMenuItems' => $footerMenu?->items ?? collect(),
+                'footerMenuItems' => $footerMenu1?->items ?? collect(),
+                'footerMenu1Items' => $footerMenu1?->items ?? collect(),
+                'footerMenu2Items' => $footerMenu2?->items ?? collect(),
 
                 'localeSwitcher' => $languageItems,
                 'languageItems' => $languageItems,
@@ -216,7 +237,7 @@ class ViewServiceProvider extends ServiceProvider
             return $fallbackPath;
         }
 
-        $cacheKey = $currentLocale . ':' . $categorySlug . ':' . $productSlug;
+        $cacheKey = $currentLocale.':'.$categorySlug.':'.$productSlug;
 
         $translation = $translations[$cacheKey] ??= ProductTranslation::query()
             ->where('locale', $currentLocale)
@@ -239,7 +260,7 @@ class ViewServiceProvider extends ServiceProvider
             ->firstWhere('locale', $targetLocale);
 
         $targetPath = $targetTranslation && $targetCategoryTranslation
-            ? ($targetLocale === Locale::Vietnamese->value ? 'san-pham' : 'products') . '/' . $targetCategoryTranslation->slug . '/' . $targetTranslation->slug
+            ? ($targetLocale === Locale::Vietnamese->value ? 'san-pham' : 'products').'/'.$targetCategoryTranslation->slug.'/'.$targetTranslation->slug
             : null;
 
         return $targetPath
@@ -259,7 +280,7 @@ class ViewServiceProvider extends ServiceProvider
             return $fallbackPath;
         }
 
-        $cacheKey = $currentLocale . ':' . $categorySlug . ':' . $postSlug;
+        $cacheKey = $currentLocale.':'.$categorySlug.':'.$postSlug;
 
         $translation = $translations[$cacheKey] ??= PostTranslation::query()
             ->where('locale', $currentLocale)
@@ -282,7 +303,7 @@ class ViewServiceProvider extends ServiceProvider
             ->firstWhere('locale', $targetLocale);
 
         $targetPath = $targetTranslation && $targetCategoryTranslation
-            ? ($targetLocale === Locale::Vietnamese->value ? 'tin-tuc' : 'news') . '/' . $targetCategoryTranslation->slug . '/' . $targetTranslation->slug
+            ? ($targetLocale === Locale::Vietnamese->value ? 'tin-tuc' : 'news').'/'.$targetCategoryTranslation->slug.'/'.$targetTranslation->slug
             : null;
 
         return $targetPath
@@ -353,10 +374,10 @@ class ViewServiceProvider extends ServiceProvider
         $path = trim($path, '/');
 
         if ($locale === Locale::Vietnamese->value) {
-            return $path === '' ? '/' : '/' . $path;
+            return $path === '' ? '/' : '/'.$path;
         }
 
-        return $path === '' ? '/' . $locale : '/' . $locale . '/' . $path;
+        return $path === '' ? '/'.$locale : '/'.$locale.'/'.$path;
     }
 
     private function appendQuery(string $path, array $query): string
@@ -367,7 +388,7 @@ class ViewServiceProvider extends ServiceProvider
             return $path;
         }
 
-        return $path . '?' . http_build_query($query);
+        return $path.'?'.http_build_query($query);
     }
 
     private function pathFromUrl(string $url): string
@@ -375,6 +396,6 @@ class ViewServiceProvider extends ServiceProvider
         $path = parse_url($url, PHP_URL_PATH) ?: '/';
         $query = parse_url($url, PHP_URL_QUERY);
 
-        return $query ? $path . '?' . $query : $path;
+        return $query ? $path.'?'.$query : $path;
     }
 }

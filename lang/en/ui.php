@@ -91,7 +91,17 @@ return [
         'information_to_prepare' => 'Information to prepare',
         'default_consulting_inputs' => ['The substrate currently in use.', 'Desired finished-product requirements.', 'Current equipment and processing conditions.'],
     ],
-    'post_detail' => [
+    'product_consultation' => [
+        'title' => 'Product consultation',
+        'description' => 'Leave your phone number and Kingda will contact you with suitable product advice.',
+        'interested_product' => 'Product of interest',
+        'subject' => 'Product consultation: :product',
+        'default_message' => 'The customer requested consultation for: :product',
+        'message_placeholder' => 'Your needs or consultation request (optional)',
+        'submit' => 'Send consultation request',
+        'success' => 'Your request has been sent. Kingda will contact you shortly.',
+        'validation_intro' => 'Please check the following information:',
+    ],    'post_detail' => [
         'reading_time' => ':count min read',
         'article_information' => 'Article information',
         'category' => 'Category:',

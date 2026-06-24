@@ -66,8 +66,21 @@
 }
 
 .kd-floating-contact--top {
+    background: #17110a;
     border-bottom: 0;
     border-radius: 0 0 14px 14px;
+}
+
+.kd-floating-contact--zalo {
+    background: #0877e8;
+}
+
+.kd-floating-contact--phone {
+    background: #b5121b;
+}
+
+.kd-floating-contact--wechat {
+    background: #09b83e;
 }
 
 .kd-floating-contact:hover,

@@ -63,17 +63,13 @@ document.querySelectorAll("[data-application-swiper]").forEach((slider) => {
     const section = slider.closest("section");
 
     new Swiper(slider, {
-        modules: [Navigation, Pagination],
+        modules: [Navigation],
         slidesPerView: 1.12,
         spaceBetween: 20,
         speed: 550,
         navigation: {
             prevEl: section?.querySelector("[data-applications-prev]"),
             nextEl: section?.querySelector("[data-applications-next]"),
-        },
-        pagination: {
-            el: section?.querySelector("[data-applications-progress]"),
-            type: "progressbar",
         },
         breakpoints: {
             640: {

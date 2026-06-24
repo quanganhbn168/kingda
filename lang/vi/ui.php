@@ -91,7 +91,17 @@ return [
         'information_to_prepare' => 'Thông tin cần chuẩn bị',
         'default_consulting_inputs' => ['Nền vật liệu đang sử dụng.', 'Yêu cầu thành phẩm mong muốn.', 'Thiết bị và điều kiện gia công hiện tại.'],
     ],
-    'post_detail' => [
+    'product_consultation' => [
+        'title' => 'Liên hệ tư vấn sản phẩm',
+        'description' => 'Để lại số điện thoại, Kingda sẽ liên hệ tư vấn sản phẩm phù hợp với nhu cầu của bạn.',
+        'interested_product' => 'Sản phẩm quan tâm',
+        'subject' => 'Tư vấn sản phẩm: :product',
+        'default_message' => 'Khách hàng yêu cầu tư vấn sản phẩm: :product',
+        'message_placeholder' => 'Nhu cầu hoặc yêu cầu cần tư vấn (không bắt buộc)',
+        'submit' => 'Gửi yêu cầu tư vấn',
+        'success' => 'Đã gửi yêu cầu tư vấn. Kingda sẽ liên hệ với bạn sớm nhất.',
+        'validation_intro' => 'Vui lòng kiểm tra lại thông tin:',
+    ],    'post_detail' => [
         'reading_time' => ':count phút đọc',
         'article_information' => 'Thông tin bài viết',
         'category' => 'Chuyên mục:',

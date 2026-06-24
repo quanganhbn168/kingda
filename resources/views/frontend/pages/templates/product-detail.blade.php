@@ -8,7 +8,6 @@
 
         $homeUrl = url($locale === 'vi' ? '/' : '/' . $locale);
         $listingUrl = url($locale === 'vi' ? '/san-pham' : '/' . $locale . '/products');
-        $contactUrl = url($locale === 'vi' ? '/lien-he' : '/' . $locale . '/contact');
 
         $categoryTranslation = $categoryTranslation ?? (
             $product->category?->relationLoaded('translations')
@@ -56,6 +55,18 @@
         ])->filter(fn (array $item): bool => filled($item['value'] ?? null))->values();
     @endphp
 
+    <div
+        x-data="{ consultationOpen: @js($errors->getBag('productConsultation')->any()) }"
+        @keydown.escape.window="consultationOpen = false"
+    >
+    @if(session('product_consultation_success'))
+        <div class="mx-auto mt-5 max-w-7xl px-4">
+            <div role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                {{ session('product_consultation_success') }}
+            </div>
+        </div>
+    @endif
+
     <section class="bg-slate-50">
         <div class="mx-auto max-w-7xl px-4 py-6">
             <nav class="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-500">
@@ -91,7 +102,7 @@
             <div class="grid gap-8 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6 lg:grid-cols-[46%_1fr] lg:p-8">
                 <div class="overflow-hidden rounded-2xl bg-slate-100">
                     @if($mainImage)
-                        <img src="{{ $mainImage }}" alt="{{ $translation->name }}" class="aspect-[4/3] w-full object-cover">
+                        <img src="{{ $mainImage }}" alt="{{ $translation->name }}" class="aspect-[1/1] w-full object-cover">
                     @else
                         <div class="flex aspect-[4/3] w-full items-center justify-center bg-slate-100 text-slate-400">
                             <div class="text-center">
@@ -142,10 +153,10 @@
                     @endif
 
                     <div class="mt-8 flex flex-wrap gap-3">
-                        <a href="{{ $contactUrl }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-extrabold text-white transition hover:bg-primary-dark">
+                        <button type="button" @click="consultationOpen = true" class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-extrabold text-white transition hover:bg-primary-dark">
                             {{ __('ui.actions.contact_consulting') }}
                             <i class="fa-solid fa-arrow-right-long"></i>
-                        </a>
+                        </button>
 
                         <a href="#thong-so" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-extrabold text-slate-800 transition hover:border-primary hover:text-primary">
                             {{ __('ui.product_detail.view_specifications') }}
@@ -368,10 +379,10 @@
                             {{ __('ui.product_detail.consulting_description') }}
                         </p>
 
-                        <a href="{{ $contactUrl }}" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-white transition hover:bg-primary-dark">
+                        <button type="button" @click="consultationOpen = true" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-white transition hover:bg-primary-dark">
                             {{ __('ui.actions.contact_consulting') }}
                             <i class="fa-solid fa-arrow-right-long"></i>
-                        </a>
+                        </button>
                     </div>
 
                     <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -476,4 +487,87 @@
             @endif
         </div>
     </section>
+    <template x-teleport="body">
+        <div
+            x-cloak
+            x-show="consultationOpen"
+            x-transition.opacity.duration.200ms
+            class="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/65 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-consultation-title"
+            @click.self="consultationOpen = false"
+        >
+            <div x-show="consultationOpen" x-transition class="relative my-auto w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl md:p-8">
+                <button type="button" @click="consultationOpen = false" class="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-950" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-primary">Kingda</p>
+                <h2 id="product-consultation-title" class="mt-2 pr-10 text-2xl font-black text-slate-950">{{ __('ui.product_consultation.title') }}</h2>
+                <p class="mt-3 text-sm leading-6 text-slate-600">{{ __('ui.product_consultation.description') }}</p>
+
+                @if($errors->getBag('productConsultation')->any())
+                    <div role="alert" class="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                        <p class="font-extrabold">{{ __('ui.product_consultation.validation_intro') }}</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            @foreach($errors->getBag('productConsultation')->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ $locale === 'vi' ? route('products.consultation.store', ['product' => $product]) : route('localized.products.consultation.store', ['locale' => $locale, 'product' => $product]) }}" class="mt-6 grid gap-4">
+                    @csrf
+
+                    <div class="absolute -left-[9999px]" aria-hidden="true">
+                        <label for="product-consultation-website">Website</label>
+                        <input id="product-consultation-website" type="text" name="website" value="" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <div>
+                        <label for="consultation-product" class="mb-1.5 block text-sm font-bold text-slate-700">{{ __('ui.product_consultation.interested_product') }}</label>
+                        <input id="consultation-product" type="text" value="{{ $translation->name }}" readonly class="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 outline-none">
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="consultation-name" class="mb-1.5 block text-sm font-bold text-slate-700">{{ __('ui.contact.name') }} *</label>
+                            <input id="consultation-name" type="text" name="name" value="{{ old('name') }}" maxlength="100" required autocomplete="name" class="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->getBag('productConsultation')->has('name') ? 'border-red-400' : 'border-slate-200' }}">
+                            @error('name', 'productConsultation') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="consultation-phone" class="mb-1.5 block text-sm font-bold text-slate-700">{{ __('ui.contact.phone') }} *</label>
+                            <input id="consultation-phone" type="tel" name="phone" value="{{ old('phone') }}" maxlength="30" required autocomplete="tel" class="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->getBag('productConsultation')->has('phone') ? 'border-red-400' : 'border-slate-200' }}">
+                            @error('phone', 'productConsultation') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="consultation-email" class="mb-1.5 block text-sm font-bold text-slate-700">{{ __('ui.contact.email') }}</label>
+                            <input id="consultation-email" type="email" name="email" value="{{ old('email') }}" maxlength="150" autocomplete="email" class="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-primary {{ $errors->getBag('productConsultation')->has('email') ? 'border-red-400' : 'border-slate-200' }}">
+                            @error('email', 'productConsultation') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="consultation-company" class="mb-1.5 block text-sm font-bold text-slate-700">{{ __('ui.contact.company') }}</label>
+                            <input id="consultation-company" type="text" name="company" value="{{ old('company') }}" maxlength="150" autocomplete="organization" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="consultation-message" class="mb-1.5 block text-sm font-bold text-slate-700">{{ __('ui.contact.message') }}</label>
+                        <textarea id="consultation-message" name="message" rows="4" maxlength="5000" placeholder="{{ __('ui.product_consultation.message_placeholder') }}" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary">{{ old('message') }}</textarea>
+                    </div>
+
+                    <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-extrabold text-white transition hover:bg-primary-dark">
+                        {{ __('ui.product_consultation.submit') }}
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </template>
+    </div>
 @endsection
