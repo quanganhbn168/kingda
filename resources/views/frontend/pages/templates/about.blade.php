@@ -72,9 +72,7 @@
                             <div class="about-image-stack__small about-image-stack__small--one">
                                 <img src="{{ $introSmallImageOne }}" alt="{{ $intro['title'] ?? $translation->title }}">
                             </div>
-                            <div class="about-image-stack__small about-image-stack__small--two">
-                                <img src="{{ $introSmallImageTwo }}" alt="{{ $intro['title'] ?? $translation->title }}">
-                            </div>
+
                         </div>
                     </div>
                     <div class="about-intro__content" data-aos="fade-left">
@@ -162,97 +160,6 @@
                         @endforeach
                     </div>
                 </div>
-            </div>
-        </section>
-
-        @if(! empty($capabilities['items']))
-            <section class="about-section">
-                <div class="about-container">
-                    <div class="about-section-head about-section-head--center" data-aos="fade-up">
-                        <div class="about-section-label">{{ $capabilities['eyebrow'] ?? '' }}</div>
-                        <h2>{{ $capabilities['title'] ?? '' }}</h2>
-                        <p>{{ $capabilities['description'] ?? '' }}</p>
-                    </div>
-                    <div class="about-capability__grid">
-                        @foreach($capabilities['items'] as $index => $item)
-                            @php($capabilityImage = $item['image'] ?: asset('images/about/' . ['nang-luc-rd.jpg', 'phong-thi-nghiem.jpg', 'nang-luc-san-xuat.jpg'][$index % 3]))
-                            <article class="about-capability-card" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
-                                <div class="about-capability-card__image">
-                                    <img src="{{ $capabilityImage }}" alt="{{ $item['title'] ?? '' }}">
-                                </div>
-                                <div class="about-capability-card__body">
-                                    <h3>{{ $item['title'] ?? '' }}</h3>
-                                    <p>{{ $item['description'] ?? '' }}</p>
-                                </div>
-                            </article>
-                        @endforeach
-                    </div>
-                </div>
-            </section>
-        @endif
-
-        @if(! empty($certificates['items']) || ! empty($intellectualProperty['items']))
-            <section class="about-section about-certifications">
-                <div class="about-container">
-                    <div class="about-certifications__layout">
-                        <div class="about-certifications__content" data-aos="fade-right">
-                            <div class="about-section-label">{{ $certificates['eyebrow'] ?? '' }}</div>
-                            <h2>{{ $certificates['title'] ?? '' }}</h2>
-                            <p>{{ $certificates['description'] ?? '' }}</p>
-                            <div class="about-ip">
-                                @foreach($intellectualProperty['items'] ?? [] as $item)
-                                    <div>
-                                        <strong>{{ $item['value'] ?? '' }}</strong>
-                                        <span>{{ $item['label'] ?? '' }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        <div class="about-certifications__cards" data-aos="fade-left">
-                            @foreach($certificates['items'] ?? [] as $item)
-                                <article>
-                                    <span>{{ $item['badge'] ?? '✓' }}</span>
-                                    <div>
-                                        <h3>{{ $item['title'] ?? '' }}</h3>
-                                        <p>{{ $item['description'] ?? '' }}</p>
-                                    </div>
-                                </article>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </section>
-        @endif
-
-        <section class="about-section about-partners">
-            <div class="about-container">
-                <div class="about-section-head about-section-head--center" data-aos="fade-up">
-                    <div class="about-section-label">{{ $customers['eyebrow'] ?? '' }}</div>
-                    <h2>{{ $customers['title'] ?? '' }}</h2>
-                    <p>{{ $customers['description'] ?? '' }}</p>
-                </div>
-                @if(! empty($customers['items']))
-                    <div class="about-partners__grid" data-aos="fade-up">
-                        @foreach($customers['items'] as $item)
-                            @php($itemUrl = $item['url'] ?? null)
-                            @if($itemUrl)
-                                <a href="{{ $itemUrl }}" class="about-partners__item" aria-label="{{ $item['name'] }}" target="_blank" rel="noopener">
-                            @else
-                                <div class="about-partners__item">
-                            @endif
-                            @if(! empty($item['logo']))
-                                <img src="{{ $item['logo'] }}" alt="{{ $item['name'] }}">
-                            @else
-                                <span>{{ $item['name'] }}</span>
-                            @endif
-                            @if($itemUrl)
-                                </a>
-                            @else
-                                </div>
-                            @endif
-                        @endforeach
-                    </div>
-                @endif
             </div>
         </section>
 

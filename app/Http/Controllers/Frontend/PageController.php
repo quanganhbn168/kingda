@@ -10,10 +10,10 @@ use App\Models\Category;
 use App\Models\Certificate;
 use App\Models\ContactMessage;
 use App\Models\Industry;
+use App\Models\IndustryTranslation;
 use App\Models\Page;
 use App\Models\PageTranslation;
 use App\Models\Post;
-use App\Models\Product;
 use App\Models\Slide;
 use App\Services\Frontend\ListingPageService;
 use App\Services\Frontend\LocalizedContent;
@@ -124,8 +124,8 @@ class PageController extends Controller
             'alternateUrls' => $this->listingPages->alternateUrls('about'),
             'ogImage' => null,
             'schema' => $this->schema->page($translation, 'AboutPage', [
-                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/' . $locale)],
-                ['name' => $translation->title, 'url' => url($locale === 'vi' ? '/gioi-thieu' : '/' . $locale . '/about')],
+                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
+                ['name' => $translation->title, 'url' => url($locale === 'vi' ? '/gioi-thieu' : '/'.$locale.'/about')],
             ]),
         ]);
     }
@@ -148,8 +148,8 @@ class PageController extends Controller
             'alternateUrls' => $this->listingPages->alternateUrls('contact'),
             'ogImage' => null,
             'schema' => $this->schema->page($translation, 'ContactPage', [
-                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/' . $locale)],
-                ['name' => __('ui.common.contact'), 'url' => url($locale === 'vi' ? '/lien-he' : '/' . $locale . '/contact')],
+                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
+                ['name' => __('ui.common.contact'), 'url' => url($locale === 'vi' ? '/lien-he' : '/'.$locale.'/contact')],
             ]),
         ]);
     }
@@ -181,8 +181,8 @@ class PageController extends Controller
                     'url' => $industry->translation?->public_url,
                 ])->all(),
                 [
-                    ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/' . $locale)],
-                    ['name' => __('ui.common.industries'), 'url' => url($locale === 'vi' ? '/linh-vuc' : '/' . $locale . '/industries')],
+                    ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
+                    ['name' => __('ui.common.industries'), 'url' => url($locale === 'vi' ? '/linh-vuc' : '/'.$locale.'/industries')],
                 ]
             ),
         ]);
@@ -190,7 +190,7 @@ class PageController extends Controller
 
     private function renderIndustryDetail(string $locale, string $slug): View
     {
-        $translation = \App\Models\IndustryTranslation::query()
+        $translation = IndustryTranslation::query()
             ->published()
             ->locale($locale)
             ->where('slug', $slug)
@@ -207,8 +207,8 @@ class PageController extends Controller
             'alternateUrls' => [],
             'ogImage' => $industry->getFirstMediaUrl('hero') ?: $industry->getFirstMediaUrl('thumbnail'),
             'schema' => $this->schema->page($translation, 'WebPage', [
-                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/' . $locale)],
-                ['name' => __('ui.common.industries'), 'url' => url($locale === 'vi' ? '/linh-vuc' : '/' . $locale . '/industries')],
+                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
+                ['name' => __('ui.common.industries'), 'url' => url($locale === 'vi' ? '/linh-vuc' : '/'.$locale.'/industries')],
                 ['name' => $translation->title, 'url' => $translation->public_url],
             ]),
         ]);
@@ -243,7 +243,7 @@ class PageController extends Controller
             'alternateUrls' => $this->buildAlternateUrls($page),
             'ogImage' => $this->schema->resolveOgImage($translation),
             'schema' => $this->schema->page($translation, 'WebPage', [
-                ['name' => __('ui.common.home'), 'url' => url(app()->getLocale() === 'vi' ? '/' : '/' . app()->getLocale())],
+                ['name' => __('ui.common.home'), 'url' => url(app()->getLocale() === 'vi' ? '/' : '/'.app()->getLocale())],
             ]),
         ] + $data);
     }
@@ -282,7 +282,11 @@ class PageController extends Controller
                 'products' => fn ($query) => $query
                     ->active()
                     ->withPublishedTranslation($locale)
-                    ->with(['translation.media'])
+                    ->with([
+                        'translation.media',
+                        'translations' => fn ($query) => $query->where('locale', 'vi'),
+                        'translations.media',
+                    ])
                     ->ordered(),
             ])
             ->ordered()
@@ -296,7 +300,7 @@ class PageController extends Controller
                     'title' => $product->translation?->name,
                     'description' => $product->translation?->description,
                     'url' => $product->translation?->public_url,
-                    'image' => $product->translation?->getFirstMediaUrl('thumbnail') ?: $product->translation?->getFirstMediaUrl('hero'),
+                    'image' => $product->displayImageUrl(),
                     'sku' => $product->sku,
                 ])->values()->all(),
             ])
@@ -498,5 +502,4 @@ class PageController extends Controller
 
         return $urls;
     }
-
 }

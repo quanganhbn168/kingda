@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Posts\Tables;
 
+use App\Enums\CategoryType;
+use App\Models\Category;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -49,7 +51,20 @@ class PostsTable
             ->filters([
                 SelectFilter::make('category_id')
                     ->label('Danh mục')
-                    ->relationship('category', 'id'),
+                    ->options(fn (): array => Category::query()
+                        ->where('type', CategoryType::Post->value)
+                        ->with('translations')
+                        ->ordered()
+                        ->get()
+                        ->mapWithKeys(function (Category $category): array {
+                            $translation = $category->translations->firstWhere('locale', 'vi')
+                                ?: $category->translations->first();
+
+                            return [$category->id => $translation?->name ?: 'Danh mục #'.$category->id];
+                        })
+                        ->all())
+                    ->searchable()
+                    ->preload(),
             ])
             ->recordActions([
                 ViewAction::make(),

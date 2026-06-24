@@ -24,8 +24,7 @@
                 : null
         );
 
-        $mainImage = $translation->getFirstMediaUrl('thumbnail')
-            ?: $translation->getFirstMediaUrl('hero');
+        $mainImage = $product->displayImageUrl($translation);
 
         $blocks = is_array($translation->blocks) ? $translation->blocks : [];
         $specifications = is_array($translation->specifications) ? $translation->specifications : [];
@@ -427,8 +426,7 @@
                             @php
                                 $relatedTranslation = $related->translation;
                                 $relatedCategoryTranslation = $related->category?->translation;
-                                $relatedImage = $relatedTranslation?->getFirstMediaUrl('thumbnail')
-                                    ?: $relatedTranslation?->getFirstMediaUrl('hero');
+                                $relatedImage = $related->displayImageUrl($relatedTranslation);
 
                                 $relatedUrl = $relatedTranslation?->slug
                                     ? url($locale === 'vi'

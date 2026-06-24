@@ -97,18 +97,18 @@ class ProductTranslation extends Model implements HasMedia
         $categorySlug = $categoryTranslation?->slug;
 
         if (! $categorySlug && $this->product_id) {
-            $cacheKey = $this->product_id . ':' . $locale;
+            $cacheKey = $this->product_id.':'.$locale;
             $categorySlug = $categorySlugCache[$cacheKey] ??= CategoryTranslation::query()
                 ->where('locale', $locale)
                 ->whereHas('category.products', fn (Builder $query): Builder => $query->whereKey($this->product_id))
                 ->value('slug');
         }
 
-        $path = $segment . '/' . trim(collect([$categorySlug, $this->slug])->filter()->join('/'), '/');
+        $path = $segment.'/'.trim(collect([$categorySlug, $this->slug])->filter()->join('/'), '/');
 
         return $locale === $defaultLocale
-            ? url('/' . $path)
-            : url('/' . $locale . '/' . $path);
+            ? url('/'.$path)
+            : url('/'.$locale.'/'.$path);
     }
 
     public function getMetaTitleAttribute(): string
@@ -136,7 +136,7 @@ class ProductTranslation extends Model implements HasMedia
         return $query->where('slug', $slug);
     }
 
-    private static function uniqueSlug(string $slug, string $locale, int | string | null $ignoreId = null): string
+    private static function uniqueSlug(string $slug, string $locale, int|string|null $ignoreId = null): string
     {
         $slug = $slug ?: 'product';
         $baseSlug = $slug;
@@ -147,7 +147,7 @@ class ProductTranslation extends Model implements HasMedia
             ->where('slug', $slug)
             ->when($ignoreId, fn (Builder $query): Builder => $query->whereKeyNot($ignoreId))
             ->exists()) {
-            $slug = $baseSlug . '-' . $suffix++;
+            $slug = $baseSlug.'-'.$suffix++;
         }
 
         return $slug;

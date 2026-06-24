@@ -53,7 +53,7 @@
                 @if ($products->count())
                     <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                         @foreach ($products as $product)
-                            @php($productImage = $product->translation?->getFirstMediaUrl('thumbnail') ?: $product->translation?->getFirstMediaUrl('hero'))
+                            @php($productImage = $product->displayImageUrl())
                             <a href="{{ $product->translation?->public_url }}"
                                 class="group block overflow-hidden rounded bg-white shadow ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                                 @if ($productImage)
