@@ -18,6 +18,8 @@ class ContactSettings extends Settings
 
     public array $social_links;
 
+    public ?string $wechat_qr_image;
+
     public ?string $default_address;
 
     public ?string $default_working_hours;

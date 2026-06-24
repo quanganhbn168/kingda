@@ -116,6 +116,8 @@
             @yield('content')
         </main>
 
+        @include('frontend.partials.floating-contacts')
+
         @include('frontend.partials.footer')
     </div>
 

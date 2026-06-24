@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Settings\ContactSettings;
 use BackedEnum;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -56,6 +57,15 @@ class ManageContactSettings extends SettingsPage
                             ])
                             ->columns(2)
                             ->default([]),
+                        FileUpload::make('wechat_qr_image')
+                            ->label('Mã QR WeChat')
+                            ->helperText('Ảnh QR hiển thị khi khách bấm nút WeChat nổi.')
+                            ->image()
+                            ->disk('public')
+                            ->visibility('public')
+                            ->directory('settings/contact')
+                            ->imagePreviewHeight('180')
+                            ->columnSpanFull(),
                     ]),
                 Section::make('Thông tin mặc định')
                     ->columns(2)

@@ -137,6 +137,7 @@ class ManageSettings extends Page
             'phones',
             'emails',
             'social_links',
+            'wechat_qr_image',
             'default_address',
             'default_working_hours',
             'default_google_map_url',
@@ -302,6 +303,15 @@ class ManageSettings extends Page
                         ])
                         ->columns(2)
                         ->default([]),
+                    FileUpload::make('wechat_qr_image')
+                        ->label('Mã QR WeChat')
+                        ->helperText('Ảnh QR hiển thị khi khách bấm nút WeChat nổi.')
+                        ->image()
+                        ->disk('public')
+                        ->visibility('public')
+                        ->directory('settings/contact')
+                        ->imagePreviewHeight('180')
+                        ->columnSpanFull(),
                 ]),
             Section::make('Thông tin mặc định')
                 ->columns(2)

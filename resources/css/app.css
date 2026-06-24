@@ -5,6 +5,227 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+[x-cloak] {
+    display: none !important;
+}
+
+.kd-floating-contacts {
+    position: fixed;
+    top: 50%;
+    right: 10px;
+    z-index: 60;
+    display: grid;
+    width: 76px;
+    overflow: visible;
+    border-radius: 14px;
+    box-shadow: 0 14px 38px rgb(15 23 42 / 24%);
+    transform: translateY(-50%);
+}
+
+.kd-floating-contact-wrap {
+    position: relative;
+}
+
+.kd-floating-contact {
+    display: flex;
+    min-height: 76px;
+    width: 76px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 0;
+    border-bottom: 1px solid rgb(255 255 255 / 22%);
+    background: #7b7f83;
+    padding: 8px 5px;
+    color: #fff;
+    text-align: center;
+    transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+.kd-floating-contacts > :first-child,
+.kd-floating-contacts > :first-child .kd-floating-contact {
+    border-radius: 14px 14px 0 0;
+}
+
+.kd-floating-contacts > :last-child,
+.kd-floating-contacts > :last-child .kd-floating-contact {
+    border-bottom: 0;
+    border-radius: 0 0 14px 14px;
+}
+
+.kd-floating-contact:hover,
+.kd-floating-contact:focus-visible {
+    z-index: 1;
+    background: #b5121b;
+    box-shadow: 0 8px 22px rgb(181 18 27 / 30%);
+    outline: none;
+    transform: translateX(-4px);
+}
+
+.kd-floating-contact--zalo:hover,
+.kd-floating-contact--zalo:focus-visible {
+    background: #0877e8;
+}
+
+.kd-floating-contact--wechat:hover,
+.kd-floating-contact--wechat:focus-visible {
+    background: #09b83e;
+}
+
+.kd-floating-contact--top:hover,
+.kd-floating-contact--top:focus-visible {
+    background: #17110a;
+}
+
+.kd-floating-contact__icon {
+    display: grid;
+    min-height: 27px;
+    place-items: center;
+    font-size: 25px;
+    line-height: 1;
+}
+
+.kd-floating-contact__icon--zalo {
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: -.05em;
+}
+
+.kd-floating-contact__label {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.kd-floating-wechat {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 14px);
+    width: 210px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #fff;
+    padding: 16px;
+    color: #0f172a;
+    text-align: center;
+    box-shadow: 0 18px 48px rgb(15 23 42 / 20%);
+    transform: translateY(-50%);
+}
+
+.kd-floating-wechat::after {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    border: 8px solid transparent;
+    border-left-color: #fff;
+    content: "";
+    transform: translateY(-50%);
+}
+
+.kd-floating-wechat img {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    object-fit: contain;
+}
+
+.kd-floating-wechat strong,
+.kd-floating-wechat span {
+    display: block;
+}
+
+.kd-floating-wechat strong {
+    margin-top: 10px;
+    font-size: 15px;
+}
+
+.kd-floating-wechat span {
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.kd-floating-wechat__close {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    place-items: center;
+    border: 0;
+    border-radius: 999px;
+    background: #0f172a;
+    color: #fff;
+}
+
+@media (max-width: 767px) {
+    .kd-floating-contacts {
+        top: auto;
+        right: 10px;
+        bottom: 18px;
+        display: flex;
+        width: auto;
+        gap: 9px;
+        border-radius: 999px;
+        box-shadow: none;
+        transform: none;
+    }
+
+    .kd-floating-contact {
+        width: 52px;
+        min-height: 52px;
+        border: 2px solid #fff !important;
+        border-radius: 999px !important;
+        padding: 0;
+        box-shadow: 0 8px 24px rgb(15 23 42 / 22%);
+    }
+
+    .kd-floating-contact--zalo { background: #0877e8; }
+    .kd-floating-contact--phone { background: #b5121b; }
+    .kd-floating-contact--wechat { background: #09b83e; }
+
+    .kd-floating-contact:hover,
+    .kd-floating-contact:focus-visible {
+        transform: translateY(-3px);
+    }
+
+    .kd-floating-contact__icon {
+        min-height: 0;
+        font-size: 20px;
+    }
+
+    .kd-floating-contact__icon--zalo { font-size: 13px; }
+
+    .kd-floating-contact__label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .kd-floating-wechat {
+        top: auto;
+        right: 0;
+        bottom: calc(100% + 12px);
+        width: min(210px, calc(100vw - 28px));
+        transform: none;
+    }
+
+    .kd-floating-wechat::after {
+        top: 100%;
+        right: 18px;
+        left: auto;
+        border-color: #fff transparent transparent;
+        transform: none;
+    }
+}
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
