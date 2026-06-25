@@ -139,4 +139,33 @@ class Category extends Model
             ...$this->descendantIds(),
         ];
     }
+
+    public function displayImageUrl(?CategoryTranslation $translation = null, array $collections = ['thumbnail', 'hero'], string $fallbackLocale = 'vi'): ?string
+    {
+        $translation ??= $this->relationLoaded('translation')
+            ? $this->translation
+            : $this->translationFor(app()->getLocale())->with('media')->first();
+
+        foreach ($collections as $collection) {
+            if (filled($url = $translation?->getFirstMediaUrl($collection))) {
+                return $url;
+            }
+        }
+
+        if ($translation?->locale === $fallbackLocale) {
+            return null;
+        }
+
+        $fallback = $this->relationLoaded('translations')
+            ? $this->translations->firstWhere('locale', $fallbackLocale)
+            : $this->translationFor($fallbackLocale)->with('media')->first();
+
+        foreach ($collections as $collection) {
+            if (filled($url = $fallback?->getFirstMediaUrl($collection))) {
+                return $url;
+            }
+        }
+
+        return null;
+    }
 }

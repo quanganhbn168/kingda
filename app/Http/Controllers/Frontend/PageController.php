@@ -265,6 +265,7 @@ class PageController extends Controller
                 ->where('is_published', true))
             ->with([
                 'translation.media',
+                'translations' => fn ($query) => $query->where('locale', 'vi')->with('media'),
             ])
             ->ordered()
             ->get();
@@ -280,8 +281,7 @@ class PageController extends Controller
                     ->withPublishedTranslation($locale)
                     ->with([
                         'translation.media',
-                        'translations' => fn ($query) => $query->where('locale', 'vi'),
-                        'translations.media',
+                        'translations' => fn ($query) => $query->where('locale', 'vi')->with('media'),
                     ])
                     ->ordered()
                     ->get();
@@ -293,7 +293,7 @@ class PageController extends Controller
                 'title' => $category->translation?->name,
                 'description' => $category->translation?->description,
                 'url' => $category->translation?->public_url,
-                'image' => $category->translation?->getFirstMediaUrl('thumbnail') ?: $category->translation?->getFirstMediaUrl('hero'),
+                'image' => $category->displayImageUrl(),
                 'products' => $category->products->map(fn ($product): array => [
                     'title' => $product->translation?->name,
                     'description' => $product->translation?->description,
