@@ -40,7 +40,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $seoTitle }}</title>
+    @php
+        $siteName = $settings->site_name ?? config('app.name');
+        $displayTitle = $seoTitle === $siteName ? $siteName : $seoTitle . ' - ' . $siteName;
+        $displayOgTitle = $ogTitle === $siteName ? $siteName : $ogTitle . ' - ' . $siteName;
+    @endphp
+
+    <title>{{ $displayTitle }}</title>
 
     @if(filled($seoDescription))
         <meta name="description" content="{{ $seoDescription }}">
@@ -60,6 +66,17 @@
         <link rel="alternate" hreflang="x-default" href="{{ $alternateUrls['vi'] }}">
     @else
         <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
+
+    @foreach($alternateUrls ?? [] as $locale => $url)
+        @if(! empty($url))
+            <link rel="alternate" hreflang="{{ $locale }}" href="{{ $url }}">
+        @endif
+    @endforeach
+
+    @if(! empty(($alternateUrls ?? [])['vi']))
+        <link rel="alternate" hreflang="x-default" href="{{ $alternateUrls['vi'] }}">
+    @else
+        <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
     @endif
 
     @if(! empty($settings->favicon))
@@ -68,8 +85,8 @@
 
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:locale" content="{{ app()->getLocale() === 'vi' ? 'vi_VN' : app()->getLocale() }}">
-    <meta property="og:site_name" content="{{ $settings->site_name ?? config('app.name') }}">
-    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:site_name" content="{{ $siteName }}">
+    <meta property="og:title" content="{{ $displayOgTitle }}">
 
     @if(filled($ogDescription))
         <meta property="og:description" content="{{ $ogDescription }}">
@@ -82,7 +99,7 @@
     @endif
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $ogTitle }}">
+    <meta name="twitter:title" content="{{ $displayOgTitle }}">
 
     @if(filled($ogDescription))
         <meta name="twitter:description" content="{{ $ogDescription }}">

@@ -32,7 +32,9 @@ class ListingPageService
             default => '',
         };
 
-        $url = \App\Enums\RouteSegments::url($type, $locale);
+        $url = $type === 'home'
+            ? \App\Enums\RouteSegments::home($locale)
+            : \App\Enums\RouteSegments::url($type, $locale);
 
         return (object) [
             'title' => $title,
