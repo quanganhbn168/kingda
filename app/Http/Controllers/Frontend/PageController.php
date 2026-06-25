@@ -256,31 +256,39 @@ class PageController extends Controller
 
     private function homeProductCategories(string $locale)
     {
-        return Category::query()
+        $rootCategories = Category::query()
+            ->root()
             ->product()
             ->active()
             ->whereHas('translations', fn ($query) => $query
                 ->where('locale', $locale)
                 ->where('is_published', true))
-            ->whereHas('products', fn ($query) => $query
-                ->active()
-                ->where('is_home', true)
-                ->withPublishedTranslation($locale))
             ->with([
                 'translation.media',
-                'products' => fn ($query) => $query
+            ])
+            ->ordered()
+            ->get();
+
+        return $rootCategories
+            ->map(function (Category $category) use ($locale) {
+                $categoryIds = $category->descendantsAndSelfIds();
+
+                $products = \App\Models\Product::query()
                     ->active()
                     ->where('is_home', true)
+                    ->whereIn('category_id', $categoryIds)
                     ->withPublishedTranslation($locale)
                     ->with([
                         'translation.media',
                         'translations' => fn ($query) => $query->where('locale', 'vi'),
                         'translations.media',
                     ])
-                    ->ordered(),
-            ])
-            ->ordered()
-            ->get()
+                    ->ordered()
+                    ->get();
+
+                $category->setRelation('products', $products);
+                return $category;
+            })
             ->map(fn (Category $category): mixed => LocalizedContent::toFluent([
                 'title' => $category->translation?->name,
                 'description' => $category->translation?->description,
