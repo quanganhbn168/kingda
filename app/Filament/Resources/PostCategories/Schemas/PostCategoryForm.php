@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Categories\Schemas;
+namespace App\Filament\Resources\PostCategories\Schemas;
 
 use App\Enums\CategoryType;
 use App\Enums\Locale;
@@ -21,7 +21,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
-class CategoryForm
+class PostCategoryForm
 {
     public static function configure(Schema $schema): Schema
     {
@@ -30,12 +30,8 @@ class CategoryForm
                 Section::make('Thông tin danh mục')
                     ->columns(2)
                     ->schema([
-                        Select::make('type')
-                            ->label('Nhóm')
-                            ->options(CategoryType::options())
-                            ->required()
-                            ->live()
-                            ->afterStateUpdated(fn (Set $set): mixed => $set('parent_id', null)),
+                        Hidden::make('type')
+                            ->default(CategoryType::Post->value),
 
                         Select::make('parent_id')
                             ->label('Danh mục cha')
@@ -210,3 +206,5 @@ class CategoryForm
         ];
     }
 }
+
+

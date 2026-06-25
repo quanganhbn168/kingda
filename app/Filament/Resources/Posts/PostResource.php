@@ -23,9 +23,9 @@ class PostResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedNewspaper;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Nội dung';
+    protected static string|UnitEnum|null $navigationGroup = 'Bài viết';
 
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $modelLabel = 'bài viết';
 

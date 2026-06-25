@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class IndustryTranslation extends Model
 {
+    use \App\Models\Concerns\HasPublicUrl;
     protected $fillable = [
         'industry_id',
         'locale',
@@ -33,15 +34,9 @@ class IndustryTranslation extends Model
         return $this->belongsTo(Industry::class);
     }
 
-    public function getPublicUrlAttribute(): string
+    protected function routeSegmentKey(): string
     {
-        $locale = $this->locale ?: 'vi';
-        $segment = $locale === 'vi' ? 'linh-vuc' : 'industries';
-        $path = $segment . '/' . trim((string) $this->slug, '/');
-
-        return $locale === 'vi'
-            ? url('/' . $path)
-            : url('/' . $locale . '/' . $path);
+        return 'industries';
     }
 
     public function scopeLocale(Builder $query, ?string $locale = null): Builder

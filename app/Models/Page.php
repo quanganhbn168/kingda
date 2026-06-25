@@ -29,37 +29,17 @@ class Page extends Model
     public const TEMPLATE_LANDING = 'landing';
 
     protected $fillable = [
-        'key',
         'type',
-        'template',
-        'is_home',
-        'is_system',
         'is_active',
         'sort_order',
     ];
 
     protected $casts = [
-        'is_home' => 'boolean',
-        'is_system' => 'boolean',
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
 
-    protected static function booted(): void
-    {
-        static::saved(function (Page $page): void {
-            if (! $page->is_home) {
-                return;
-            }
-
-            static::query()
-                ->whereKeyNot($page->getKey())
-                ->where('is_home', true)
-                ->update(['is_home' => false]);
-
-            $page->translations()->update(['slug' => null]);
-        });
-    }
+    //
 
     public static function types(): array
     {
@@ -120,23 +100,7 @@ class Page extends Model
 
     public function getTemplateViewAttribute(): string
     {
-        $template = $this->template ?: PageTemplate::Default->value;
-
-        $view = 'frontend.pages.templates.' . $template;
-
-        return view()->exists($view)
-            ? $view
-            : 'frontend.pages.templates.default';
-    }
-
-    public function scopeHome(Builder $query): Builder
-    {
-        return $query->where('is_home', true);
-    }
-
-    public function scopeSystem(Builder $query): Builder
-    {
-        return $query->where('is_system', true);
+        return 'frontend.pages.templates.default';
     }
 
     public function scopeType(Builder $query, string $type): Builder
@@ -144,10 +108,7 @@ class Page extends Model
         return $query->where('type', $type);
     }
 
-    public function scopeTemplate(Builder $query, string $template): Builder
-    {
-        return $query->where('template', $template);
-    }
+    //
 
     public function scopeWithPublishedTranslation(Builder $query, string $locale): Builder
     {

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\Categories\Schemas;
+namespace App\Filament\Resources\PostCategories\Schemas;
 
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
-class CategoryInfolist
+class PostCategoryInfolist
 {
     public static function configure(Schema $schema): Schema
     {
@@ -29,3 +29,4 @@ class CategoryInfolist
             ]);
     }
 }
+

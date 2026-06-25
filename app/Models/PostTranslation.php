@@ -12,6 +12,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class PostTranslation extends Model implements HasMedia
 {
     use InteractsWithMedia;
+    use \App\Models\Concerns\HasPublicUrl;
 
     protected $fillable = [
         'post_id',
@@ -71,12 +72,15 @@ class PostTranslation extends Model implements HasMedia
         $this->addMediaCollection('gallery')->useDisk('public');
     }
 
-    public function getPublicUrlAttribute(): string
+    protected function routeSegmentKey(): string
     {
-        $defaultLocale = config('locales.default', 'vi');
-        $locale = $this->locale ?: $defaultLocale;
-        $segment = $locale === 'vi' ? 'tin-tuc' : 'news';
+        return 'news';
+    }
+
+    protected function urlSegments(): array
+    {
         static $categorySlugCache = [];
+        $locale = $this->locale ?: config('locales.default', 'vi');
 
         $post = $this->relationLoaded('post') ? $this->post : null;
         $category = $post?->category;
@@ -100,11 +104,7 @@ class PostTranslation extends Model implements HasMedia
                 ->value('slug');
         }
 
-        $path = $segment . '/' . trim(collect([$categorySlug, $this->slug])->filter()->join('/'), '/');
-
-        return $locale === $defaultLocale
-            ? url('/' . $path)
-            : url('/' . $locale . '/' . $path);
+        return [$categorySlug, $this->slug];
     }
 
     public function getMetaTitleAttribute(): string

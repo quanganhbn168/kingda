@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Enums\ContactMessageStatus;
+use App\Enums\RouteSegments;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\StoreContactMessageRequest;
 use App\Models\Branch;
@@ -70,43 +71,28 @@ class PageController extends Controller
         return $this->renderIndustryDetail(app()->getLocale(), $slug);
     }
 
-    public function localizedIndustryDetail(Request $request, string $locale, string $slug): View
-    {
-        return $this->renderIndustryDetail(app()->getLocale(), $slug);
-    }
-
     public function show(Request $request, string $slug): View
-    {
-        return $this->renderPageBySlug(app()->getLocale(), $slug);
-    }
-
-    public function localizedShow(Request $request, string $locale, string $slug): View
     {
         return $this->renderPageBySlug(app()->getLocale(), $slug);
     }
 
     private function renderHome(string $locale): View
     {
-        $page = Page::query()
-            ->active()
-            ->home()
-            ->with([
-                'translations',
-                'translations.media',
-            ])
-            ->firstOrFail();
+        $translation = $this->listingPages->translation($locale, 'home');
 
-        $translation = $page->publishedTranslation($locale);
-
-        abort_if(! $translation, 404);
-
-        return $this->render($page, $translation, [
+        return view('frontend.pages.templates.home', [
+            'translation' => $translation,
             'homeSlides' => $this->homeSlides($locale),
             'homeSettings' => $this->homeSettings($locale),
             'aboutCapabilities' => $this->aboutSettings($locale)['capabilities'] ?? [],
             'homeIndustries' => $this->homeIndustries($locale),
             'homeProductCategories' => $this->homeProductCategories($locale),
             'homePosts' => $this->homePosts($locale),
+            'alternateUrls' => $this->listingPages->alternateUrls('home'),
+            'ogImage' => null,
+            'schema' => $this->schema->page($translation, 'WebPage', [
+                ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+            ]),
         ]);
     }
 
@@ -124,8 +110,8 @@ class PageController extends Controller
             'alternateUrls' => $this->listingPages->alternateUrls('about'),
             'ogImage' => null,
             'schema' => $this->schema->page($translation, 'AboutPage', [
-                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
-                ['name' => $translation->title, 'url' => url($locale === 'vi' ? '/gioi-thieu' : '/'.$locale.'/about')],
+                ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+                ['name' => $translation->title, 'url' => RouteSegments::url('about', $locale)],
             ]),
         ]);
     }
@@ -148,8 +134,8 @@ class PageController extends Controller
             'alternateUrls' => $this->listingPages->alternateUrls('contact'),
             'ogImage' => null,
             'schema' => $this->schema->page($translation, 'ContactPage', [
-                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
-                ['name' => __('ui.common.contact'), 'url' => url($locale === 'vi' ? '/lien-he' : '/'.$locale.'/contact')],
+                ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+                ['name' => __('ui.common.contact'), 'url' => RouteSegments::url('contact', $locale)],
             ]),
         ]);
     }
@@ -181,8 +167,8 @@ class PageController extends Controller
                     'url' => $industry->translation?->public_url,
                 ])->all(),
                 [
-                    ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
-                    ['name' => __('ui.common.industries'), 'url' => url($locale === 'vi' ? '/linh-vuc' : '/'.$locale.'/industries')],
+                    ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+                    ['name' => __('ui.common.industries'), 'url' => RouteSegments::url('industries', $locale)],
                 ]
             ),
         ]);
@@ -207,8 +193,8 @@ class PageController extends Controller
             'alternateUrls' => [],
             'ogImage' => $industry->getFirstMediaUrl('hero') ?: $industry->getFirstMediaUrl('thumbnail'),
             'schema' => $this->schema->page($translation, 'WebPage', [
-                ['name' => __('ui.common.home'), 'url' => url($locale === 'vi' ? '/' : '/'.$locale)],
-                ['name' => __('ui.common.industries'), 'url' => url($locale === 'vi' ? '/linh-vuc' : '/'.$locale.'/industries')],
+                ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+                ['name' => __('ui.common.industries'), 'url' => RouteSegments::url('industries', $locale)],
                 ['name' => $translation->title, 'url' => $translation->public_url],
             ]),
         ]);
@@ -237,13 +223,15 @@ class PageController extends Controller
 
     private function render(Page $page, PageTranslation $translation, array $data = []): View
     {
+        $locale = app()->getLocale();
+
         return view($page->template_view, [
             'page' => $page,
             'translation' => $translation,
             'alternateUrls' => $this->buildAlternateUrls($page),
             'ogImage' => $this->schema->resolveOgImage($translation),
             'schema' => $this->schema->page($translation, 'WebPage', [
-                ['name' => __('ui.common.home'), 'url' => url(app()->getLocale() === 'vi' ? '/' : '/'.app()->getLocale())],
+                ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
             ]),
         ] + $data);
     }
@@ -276,11 +264,13 @@ class PageController extends Controller
                 ->where('is_published', true))
             ->whereHas('products', fn ($query) => $query
                 ->active()
+                ->where('is_home', true)
                 ->withPublishedTranslation($locale))
             ->with([
                 'translation.media',
                 'products' => fn ($query) => $query
                     ->active()
+                    ->where('is_home', true)
                     ->withPublishedTranslation($locale)
                     ->with([
                         'translation.media',

@@ -3,6 +3,7 @@
 namespace App\Services\Frontend;
 
 use App\Enums\CategoryType;
+use App\Enums\RouteSegments;
 use App\Models\Category;
 use App\Models\CategoryTranslation;
 use App\Models\Product;
@@ -14,20 +15,12 @@ class FrontendUrlBuilder
 {
     public function home(string $locale): string
     {
-        return url($locale === 'vi' ? '/' : '/' . $locale);
+        return RouteSegments::home($locale);
     }
 
     public function listing(string $type, string $locale): string
     {
-        $segment = match ($type) {
-            'about' => $locale === 'vi' ? 'gioi-thieu' : 'about',
-            'products' => $locale === 'vi' ? 'san-pham' : 'products',
-            'news' => $locale === 'vi' ? 'tin-tuc' : 'news',
-            'contact' => $locale === 'vi' ? 'lien-he' : 'contact',
-            'industries' => $locale === 'vi' ? 'linh-vuc' : 'industries',
-        };
-
-        return url($locale === 'vi' ? '/' . $segment : '/' . $locale . '/' . $segment);
+        return RouteSegments::url($type, $locale);
     }
 
     public function category(Category $category, ?CategoryTranslation $translation, string $locale): ?string
@@ -36,16 +29,14 @@ class FrontendUrlBuilder
             return null;
         }
 
-        $base = match ($category->type) {
-            CategoryType::Product->value => $locale === 'vi' ? 'san-pham' : 'products',
-            CategoryType::Post->value => $locale === 'vi' ? 'tin-tuc' : 'news',
-            CategoryType::Service->value => $locale === 'vi' ? 'dich-vu' : 'services',
+        $sectionKey = match ($category->type) {
+            CategoryType::Product->value => 'products',
+            CategoryType::Post->value => 'news',
+            CategoryType::Service->value => 'services',
             default => 'categories',
         };
 
-        return url($locale === 'vi'
-            ? '/' . $base . '/' . $translation->slug
-            : '/' . $locale . '/' . $base . '/' . $translation->slug);
+        return RouteSegments::url($sectionKey, $locale, $translation->slug);
     }
 
     public function product(Product $product, ?ProductTranslation $translation, string $locale): ?string
@@ -63,13 +54,11 @@ class FrontendUrlBuilder
             $categoryTranslation = $category->translations->firstWhere('locale', $locale);
         }
 
-        $path = collect([
-            $locale === 'vi' ? 'san-pham' : 'products',
-            $categoryTranslation?->slug,
-            $translation->slug,
-        ])->filter()->join('/');
+        $segments = collect([$categoryTranslation?->slug, $translation->slug])
+            ->filter()
+            ->all();
 
-        return url($locale === 'vi' ? '/' . $path : '/' . $locale . '/' . $path);
+        return RouteSegments::url('products', $locale, ...$segments);
     }
 
     public function post(Post $post, ?PostTranslation $translation, string $locale): ?string
@@ -87,12 +76,10 @@ class FrontendUrlBuilder
             $categoryTranslation = $category->translations->firstWhere('locale', $locale);
         }
 
-        $path = collect([
-            $locale === 'vi' ? 'tin-tuc' : 'news',
-            $categoryTranslation?->slug,
-            $translation->slug,
-        ])->filter()->join('/');
+        $segments = collect([$categoryTranslation?->slug, $translation->slug])
+            ->filter()
+            ->all();
 
-        return url($locale === 'vi' ? '/' . $path : '/' . $locale . '/' . $path);
+        return RouteSegments::url('news', $locale, ...$segments);
     }
 }

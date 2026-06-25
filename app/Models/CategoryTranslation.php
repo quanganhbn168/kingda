@@ -13,6 +13,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class CategoryTranslation extends Model implements HasMedia
 {
     use InteractsWithMedia;
+    use \App\Models\Concerns\HasPublicUrl;
 
     protected $fillable = [
         'category_id',
@@ -68,28 +69,16 @@ class CategoryTranslation extends Model implements HasMedia
         $this->addMediaCollection('og_image')->useDisk('public')->singleFile();
     }
 
-    public function getPublicUrlAttribute(): string
+    protected function routeSegmentKey(): string
     {
-        $defaultLocale = config('locales.default', 'vi');
-        $locale = $this->locale ?: $defaultLocale;
         $type = $this->category?->type;
 
-        $path = match ($type) {
-            CategoryType::Product->value => $locale === 'vi'
-                ? 'san-pham/' . $this->slug
-                : 'products/' . $this->slug,
-            CategoryType::Post->value => $locale === 'vi'
-                ? 'tin-tuc/' . $this->slug
-                : 'news/' . $this->slug,
-            CategoryType::Service->value => $locale === 'vi'
-                ? 'dich-vu/' . $this->slug
-                : 'services/' . $this->slug,
-            default => 'categories/' . $this->slug,
+        return match ($type) {
+            CategoryType::Product->value => 'products',
+            CategoryType::Post->value => 'news',
+            CategoryType::Service->value => 'services',
+            default => 'categories',
         };
-
-        return $locale === $defaultLocale
-            ? url('/' . $path)
-            : url('/' . $locale . '/' . $path);
     }
 
     public function getMetaTitleAttribute(): string

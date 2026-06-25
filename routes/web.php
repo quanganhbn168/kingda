@@ -28,23 +28,23 @@ Route::middleware('set-locale')->group(function (): void {
             Route::get('/', [PageController::class, 'home'])->name('localized.home');
 
             Route::get('/products', [ProductController::class, 'index'])->name('localized.products.index');
-            Route::post('/products/{product}/consultation', [ProductController::class, 'localizedStoreConsultation'])->middleware('throttle:5,1')->name('localized.products.consultation.store');
-            Route::get('/products/{categorySlug}', [ProductController::class, 'localizedCategory'])->name('localized.products.category');
-            Route::get('/products/{categorySlug}/{productSlug}', [ProductController::class, 'localizedShow'])->name('localized.products.show');
+            Route::post('/products/{product}/consultation', [ProductController::class, 'storeConsultation'])->middleware('throttle:5,1')->name('localized.products.consultation.store');
+            Route::get('/products/{categorySlug}', [ProductController::class, 'category'])->name('localized.products.category');
+            Route::get('/products/{categorySlug}/{productSlug}', [ProductController::class, 'show'])->name('localized.products.show');
 
             Route::get('/news', [PostController::class, 'index'])->name('localized.news.index');
-            Route::get('/news/{categorySlug}', [PostController::class, 'localizedCategory'])->name('localized.posts.category');
-            Route::get('/news/{categorySlug}/{postSlug}', [PostController::class, 'localizedShow'])->name('localized.posts.show');
+            Route::get('/news/{categorySlug}', [PostController::class, 'category'])->name('localized.posts.category');
+            Route::get('/news/{categorySlug}/{postSlug}', [PostController::class, 'show'])->name('localized.posts.show');
 
             Route::get('/industries', [PageController::class, 'industries'])->name('localized.industries.index');
-            Route::get('/industries/{slug}', [PageController::class, 'localizedIndustryDetail'])->name('localized.industries.show');
+            Route::get('/industries/{slug}', [PageController::class, 'industryDetail'])->name('localized.industries.show');
 
             Route::get('/contact', [PageController::class, 'contact'])->name('localized.contact');
             Route::post('/contact', [PageController::class, 'storeContact'])->middleware('throttle:5,1')->name('localized.contact.store');
 
             Route::get('/about', [PageController::class, 'about'])->name('localized.about');
 
-            Route::get('/{slug}', [PageController::class, 'localizedShow'])
+            Route::get('/{slug}', [PageController::class, 'show'])
                 ->where('slug', '^(?!admin$|api$|filament$|livewire.*|storage$|up$).+')
                 ->name('localized.pages.show');
         });

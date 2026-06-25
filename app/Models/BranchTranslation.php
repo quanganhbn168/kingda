@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BranchTranslation extends Model
 {
+    use \App\Models\Concerns\HasPublicUrl;
     protected $fillable = [
         'branch_id',
         'locale',
@@ -33,13 +34,9 @@ class BranchTranslation extends Model
         return $this->belongsTo(Branch::class);
     }
 
-    public function getPublicUrlAttribute(): string
+    protected function routeSegmentKey(): string
     {
-        $slug = trim((string) $this->slug, '/');
-
-        return $this->locale === 'vi'
-            ? url('/chi-nhanh/' . $slug)
-            : url('/' . $this->locale . '/branches/' . $slug);
+        return 'branches';
     }
 
     public function getResolvedSeoTitleAttribute(): string

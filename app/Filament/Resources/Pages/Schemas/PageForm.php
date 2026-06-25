@@ -35,56 +35,17 @@ class PageForm
                     ->columnSpanFull()
                     ->schema([
                         Section::make('Thông tin trang')
-                            ->description('Trang đã có route và Blade trong code. Khu vực này chỉ hiển thị cấu hình kỹ thuật để đối chiếu.')
                             ->schema([
-                                TextInput::make('key')
-                                    ->label('Mã trang')
-                                    ->placeholder('home, about, contact, privacy-policy')
-                                    ->required()
-                                    ->disabled()
-                                    ->dehydrated()
-                                    ->maxLength(100)
-                                    ->unique(ignoreRecord: true)
-                                    ->helperText('Mã này được code dùng để map route/template, không cần sửa trong admin.'),
-
                                 Select::make('type')
                                     ->label('Loại trang')
                                     ->options(PageType::options())
                                     ->default(PageType::Page->value)
                                     ->required()
-                                    ->disabled()
-                                    ->dehydrated()
                                     ->native(false),
 
-                                Select::make('template')
-                                    ->label('Giao diện Blade')
-                                    ->options(PageTemplate::options())
-                                    ->default(PageTemplate::Default->value)
-                                    ->required()
-                                    ->disabled()
-                                    ->dehydrated()
-                                    ->native(false)
-                                    ->helperText('Map tới resources/views/frontend/pages/templates/{template}.blade.php'),
-
-                                Grid::make([
-                                    'default' => 1,
-                                    'md' => 3,
-                                ])
-                                    ->schema([
-                                        Toggle::make('is_home')
-                                            ->label('Trang chủ')
-                                            ->helperText('Chỉ nên có 1 trang chủ.'),
-
-                                        Toggle::make('is_system')
-                                            ->label('Trang hệ thống')
-                                            ->disabled()
-                                            ->dehydrated()
-                                            ->helperText('Trang lõi, hạn chế xóa nhầm.'),
-
-                                        Toggle::make('is_active')
-                                            ->label('Đang hoạt động')
-                                            ->default(true),
-                                    ]),
+                                Toggle::make('is_active')
+                                    ->label('Đang hoạt động')
+                                    ->default(true),
 
                                 TextInput::make('sort_order')
                                     ->label('Thứ tự')
@@ -94,7 +55,7 @@ class PageForm
                             ])
                             ->columns([
                                 'default' => 1,
-                                'md' => 2,
+                                'md' => 3,
                             ])
                             ->columnSpanFull(),
 
@@ -141,11 +102,7 @@ class PageForm
                                                                     ->label('Slug')
                                                                     ->placeholder('Tự sinh khi lưu nếu để trống')
                                                                     ->maxLength(255)
-                                                                    ->disabled(fn (?Page $record): bool => (bool) $record?->is_system)
-                                                                    ->dehydrated(fn (?Page $record): bool => ! $record?->is_system)
-                                                                    ->helperText(fn (?Page $record): string => $record?->is_system
-                                                                        ? 'Trang hệ thống dùng route cố định theo mã trang, không cần sửa slug.'
-                                                                        : 'Có thể để trống, hệ thống tự sinh từ tiêu đề khi lưu. Trang chủ luôn để trống.'),
+                                                                    ->helperText('Có thể để trống, hệ thống tự sinh từ tiêu đề khi lưu.'),
                                                             ]),
 
                                                         TextInput::make('headline')

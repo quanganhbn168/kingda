@@ -47,14 +47,6 @@ class PageTranslation extends Model implements HasMedia
     protected static function booted(): void
     {
         static::saving(function (PageTranslation $translation): void {
-            $page = $translation->page ?: Page::query()->find($translation->page_id);
-
-            if ($page?->is_home) {
-                $translation->slug = null;
-
-                return;
-            }
-
             if (filled($translation->slug) || blank($translation->title)) {
                 $translation->slug = $translation->slug ? trim($translation->slug, '/') : null;
 
@@ -76,26 +68,10 @@ class PageTranslation extends Model implements HasMedia
 
     public function getPublicUrlAttribute(): string
     {
-        $page = $this->page;
         $locale = $this->locale ?: 'vi';
-
-        if ($page?->is_home) {
-            return $this->locale === 'vi'
-                ? url('/')
-                : url('/' . $this->locale);
-        }
-
-        $systemPath = $this->systemPath($page?->key, $locale);
-
-        if ($systemPath !== null) {
-            return url($systemPath);
-        }
-
         $slug = trim((string) $this->slug, '/');
 
-        return $locale === 'vi'
-            ? url('/' . $slug)
-            : url('/' . $locale . '/' . $slug);
+        return url(\App\Enums\RouteSegments::path($locale, $slug));
     }
 
     public function getResolvedSeoTitleAttribute(): string
@@ -137,27 +113,6 @@ class PageTranslation extends Model implements HasMedia
         $this->addMediaCollection('og_image')->useDisk('public')->singleFile();
 
         $this->addMediaCollection('gallery')->useDisk('public');
-    }
-
-    private function systemPath(?string $key, string $locale): ?string
-    {
-        $segments = match ($key) {
-            'about' => ['vi' => 'gioi-thieu', 'en' => 'about', 'zh' => 'about'],
-            'products' => ['vi' => 'san-pham', 'en' => 'products', 'zh' => 'products'],
-            'news' => ['vi' => 'tin-tuc', 'en' => 'news', 'zh' => 'news'],
-            'contact' => ['vi' => 'lien-he', 'en' => 'contact', 'zh' => 'contact'],
-            default => null,
-        };
-
-        if ($segments === null) {
-            return null;
-        }
-
-        $segment = $segments[$locale] ?? $segments['en'];
-
-        return $locale === 'vi'
-            ? '/' . $segment
-            : '/' . $locale . '/' . $segment;
     }
 
     private static function uniqueSlug(string $slug, string $locale, int | string | null $ignoreId = null): string

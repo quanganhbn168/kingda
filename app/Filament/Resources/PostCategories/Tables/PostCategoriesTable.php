@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Categories\Tables;
+namespace App\Filament\Resources\PostCategories\Tables;
 
 use App\Enums\CategoryType;
 use Filament\Actions\BulkActionGroup;
@@ -12,7 +12,7 @@ use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-class CategoriesTable
+class PostCategoriesTable
 {
     public static function configure(Table $table): Table
     {
@@ -24,10 +24,6 @@ class CategoriesTable
                     ->sortable(),
                 TextColumn::make('parent.translation.name')
                     ->label('Danh mục cha')
-                    ->searchable(),
-                TextColumn::make('type')
-                    ->label('Nhóm')
-                    ->formatStateUsing(fn (?string $state): ?string => $state ? CategoryType::tryFrom($state)?->label() ?? $state : null)
                     ->searchable(),
                 ToggleColumn::make('is_active')
                     ->label('Kích hoạt')
@@ -46,9 +42,7 @@ class CategoriesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('type')
-                    ->label('Nhóm')
-                    ->options(CategoryType::options()),
+                
             ])
             ->recordActions([
                 EditAction::make(),
@@ -63,3 +57,4 @@ class CategoriesTable
             ]);
     }
 }
+

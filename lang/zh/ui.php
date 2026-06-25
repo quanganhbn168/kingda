@@ -18,6 +18,7 @@ return [
     ],
     'common' => [
         'kingda' => '金达',
+        'about' => '关于',
         'all' => '全部',
         'all_categories' => '全部分类',
         'product_categories' => '产品分类',
@@ -128,4 +129,21 @@ return [
         'privacy_terms' => '隐私政策 | 使用条款',
         'rights' => 'All rights reserved.',
     ],
+    'seo' => [
+        'about' => [
+            'description' => '金达是一家为工业制造提供电子印刷材料、涂料和功能材料解决方案的企业。'
+        ],
+        'products' => [
+            'description' => '金达的产品类别及应用材料解决方案。'
+        ],
+        'news' => [
+            'description' => '最新动态、活动及材料应用见解。'
+        ],
+        'contact' => [
+            'description' => '联系金达以获取量身定制的解决方案咨询。'
+        ],
+        'industries' => [
+            'description' => '应用金达材料、油墨和工业涂料解决方案的行业。'
+        ]
+    ]
 ];

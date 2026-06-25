@@ -18,6 +18,7 @@ return [
     ],
     'common' => [
         'kingda' => 'Kingda',
+        'about' => 'Giới thiệu',
         'all' => 'Tất cả',
         'all_categories' => 'Tất cả danh mục',
         'product_categories' => 'Danh mục sản phẩm',
@@ -128,4 +129,21 @@ return [
         'privacy_terms' => 'Chính sách bảo mật | Điều khoản sử dụng',
         'rights' => 'All rights reserved.',
     ],
+    'seo' => [
+        'about' => [
+            'description' => 'Kingda là doanh nghiệp cung cấp giải pháp vật liệu in ấn điện tử, sơn phủ và vật liệu chức năng cho sản xuất công nghiệp.'
+        ],
+        'products' => [
+            'description' => 'Danh mục sản phẩm và giải pháp vật liệu ứng dụng của Kingda.'
+        ],
+        'news' => [
+            'description' => 'Cập nhật tin tức, hoạt động và kiến thức ứng dụng vật liệu.'
+        ],
+        'contact' => [
+            'description' => 'Kết nối với Kingda để được tư vấn giải pháp phù hợp.'
+        ],
+        'industries' => [
+            'description' => 'Các lĩnh vực ứng dụng vật liệu, mực in và sơn phủ công nghiệp của Kingda.'
+        ]
+    ]
 ];

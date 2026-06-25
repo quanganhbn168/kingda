@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Enums\MenuLocation;
+use App\Enums\RouteSegments;
 use App\Models\CategoryTranslation;
 use App\Models\IndustryTranslation;
 use App\Models\Menu;
@@ -132,8 +133,8 @@ class ViewServiceProvider extends ServiceProvider
                 ->all();
 
             $payloads[$cacheKey] = [
-                'homeUrl' => $locale === 'vi' ? url('/') : url('/'.$locale),
-                'contactUrl' => $locale === 'vi' ? url('/lien-he') : url('/'.$locale.'/contact'),
+                'homeUrl' => RouteSegments::home($locale),
+                'contactUrl' => RouteSegments::url('contact', $locale),
 
                 'headerMenuItems' => $headerMenuItems,
                 'footerMenuItems' => $footerMenu1?->items ?? collect(),
@@ -152,28 +153,26 @@ class ViewServiceProvider extends ServiceProvider
     {
         $routeName = $request->route()?->getName();
 
-        $path = match ($routeName) {
-            'home', 'localized.home' => $this->localizedPath($targetLocale, ''),
-            'about', 'localized.about' => $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? 'gioi-thieu' : 'about'),
-            'products.index', 'localized.products.index' => $this->localizedListingPath($request, $currentLocale, $targetLocale, 'product', 'san-pham', 'products'),
-            'products.category', 'localized.products.category' => $this->localizedCategoryPath($request, $currentLocale, $targetLocale, CategoryType::Product->value, 'san-pham', 'products'),
-            'products.show', 'localized.products.show' => $this->localizedProductDetailPath($request, $currentLocale, $targetLocale),
-            'news.index', 'localized.news.index' => $this->localizedListingPath($request, $currentLocale, $targetLocale, 'post', 'tin-tuc', 'news'),
-            'posts.category', 'localized.posts.category' => $this->localizedCategoryPath($request, $currentLocale, $targetLocale, CategoryType::Post->value, 'tin-tuc', 'news'),
-            'posts.show', 'localized.posts.show' => $this->localizedPostDetailPath($request, $currentLocale, $targetLocale),
-            'industries.index', 'localized.industries.index' => $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? 'linh-vuc' : 'industries'),
-            'industries.show', 'localized.industries.show' => $this->localizedIndustryDetailPath($request, $currentLocale, $targetLocale),
-            'contact', 'localized.contact' => $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? 'lien-he' : 'contact'),
-            'pages.show', 'localized.pages.show' => $this->localizedPagePath($request, $currentLocale, $targetLocale),
-            default => $this->localizedPath($targetLocale, ''),
+        return match ($routeName) {
+            'home', 'localized.home' => RouteSegments::home($targetLocale),
+            'about', 'localized.about' => RouteSegments::url('about', $targetLocale),
+            'products.index', 'localized.products.index' => $this->localizedListingUrl($request, $currentLocale, $targetLocale, 'product', 'products'),
+            'products.category', 'localized.products.category' => $this->localizedCategoryUrl($request, $currentLocale, $targetLocale, CategoryType::Product->value, 'products'),
+            'products.show', 'localized.products.show' => $this->localizedProductDetailUrl($request, $currentLocale, $targetLocale),
+            'news.index', 'localized.news.index' => $this->localizedListingUrl($request, $currentLocale, $targetLocale, 'post', 'news'),
+            'posts.category', 'localized.posts.category' => $this->localizedCategoryUrl($request, $currentLocale, $targetLocale, CategoryType::Post->value, 'news'),
+            'posts.show', 'localized.posts.show' => $this->localizedPostDetailUrl($request, $currentLocale, $targetLocale),
+            'industries.index', 'localized.industries.index' => RouteSegments::url('industries', $targetLocale),
+            'industries.show', 'localized.industries.show' => $this->localizedIndustryDetailUrl($request, $currentLocale, $targetLocale),
+            'contact', 'localized.contact' => RouteSegments::url('contact', $targetLocale),
+            'pages.show', 'localized.pages.show' => $this->localizedPageUrl($request, $currentLocale, $targetLocale),
+            default => RouteSegments::home($targetLocale),
         };
-
-        return url($path);
     }
 
-    private function localizedListingPath(Request $request, string $currentLocale, string $targetLocale, string $categoryType, string $viSegment, string $localizedSegment): string
+    private function localizedListingUrl(Request $request, string $currentLocale, string $targetLocale, string $categoryType, string $segmentKey): string
     {
-        $path = $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? $viSegment : $localizedSegment);
+        $url = RouteSegments::url($segmentKey, $targetLocale);
         $query = $request->query();
 
         if (filled($query['category'] ?? null)) {
@@ -195,16 +194,16 @@ class ViewServiceProvider extends ServiceProvider
             }
         }
 
-        return $this->appendQuery($path, $query);
+        return $this->appendQuery($url, $query);
     }
 
-    private function localizedCategoryPath(Request $request, string $currentLocale, string $targetLocale, string $categoryType, string $viSegment, string $localizedSegment): string
+    private function localizedCategoryUrl(Request $request, string $currentLocale, string $targetLocale, string $categoryType, string $segmentKey): string
     {
-        $fallbackPath = $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? $viSegment : $localizedSegment);
+        $fallbackUrl = RouteSegments::url($segmentKey, $targetLocale);
         $categorySlug = $request->route('categorySlug');
 
         if (! $categorySlug) {
-            return $fallbackPath;
+            return $fallbackUrl;
         }
 
         $translation = CategoryTranslation::query()
@@ -220,21 +219,19 @@ class ViewServiceProvider extends ServiceProvider
             ->where('is_published', true)
             ->first();
 
-        return $targetTranslation
-            ? $this->pathFromUrl($targetTranslation->public_url)
-            : $fallbackPath;
+        return $targetTranslation ? $targetTranslation->public_url : $fallbackUrl;
     }
 
-    private function localizedProductDetailPath(Request $request, string $currentLocale, string $targetLocale): string
+    private function localizedProductDetailUrl(Request $request, string $currentLocale, string $targetLocale): string
     {
         static $translations = [];
 
-        $fallbackPath = $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? 'san-pham' : 'products');
+        $fallbackUrl = RouteSegments::url('products', $targetLocale);
         $categorySlug = $request->route('categorySlug');
         $productSlug = $request->route('productSlug');
 
         if (! $categorySlug || ! $productSlug) {
-            return $fallbackPath;
+            return $fallbackUrl;
         }
 
         $cacheKey = $currentLocale.':'.$categorySlug.':'.$productSlug;
@@ -254,30 +251,19 @@ class ViewServiceProvider extends ServiceProvider
             ?->translations
             ->first(fn (ProductTranslation $item): bool => $item->locale === $targetLocale && $item->is_published);
 
-        $targetCategoryTranslation = $translation?->product
-            ?->category
-            ?->translations
-            ->firstWhere('locale', $targetLocale);
-
-        $targetPath = $targetTranslation && $targetCategoryTranslation
-            ? ($targetLocale === Locale::Vietnamese->value ? 'san-pham' : 'products').'/'.$targetCategoryTranslation->slug.'/'.$targetTranslation->slug
-            : null;
-
-        return $targetPath
-            ? $this->localizedPath($targetLocale, $targetPath)
-            : $fallbackPath;
+        return $targetTranslation ? $targetTranslation->public_url : $fallbackUrl;
     }
 
-    private function localizedPostDetailPath(Request $request, string $currentLocale, string $targetLocale): string
+    private function localizedPostDetailUrl(Request $request, string $currentLocale, string $targetLocale): string
     {
         static $translations = [];
 
-        $fallbackPath = $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? 'tin-tuc' : 'news');
+        $fallbackUrl = RouteSegments::url('news', $targetLocale);
         $categorySlug = $request->route('categorySlug');
         $postSlug = $request->route('postSlug');
 
         if (! $categorySlug || ! $postSlug) {
-            return $fallbackPath;
+            return $fallbackUrl;
         }
 
         $cacheKey = $currentLocale.':'.$categorySlug.':'.$postSlug;
@@ -297,27 +283,16 @@ class ViewServiceProvider extends ServiceProvider
             ?->translations
             ->first(fn (PostTranslation $item): bool => $item->locale === $targetLocale && $item->is_published);
 
-        $targetCategoryTranslation = $translation?->post
-            ?->category
-            ?->translations
-            ->firstWhere('locale', $targetLocale);
-
-        $targetPath = $targetTranslation && $targetCategoryTranslation
-            ? ($targetLocale === Locale::Vietnamese->value ? 'tin-tuc' : 'news').'/'.$targetCategoryTranslation->slug.'/'.$targetTranslation->slug
-            : null;
-
-        return $targetPath
-            ? $this->localizedPath($targetLocale, $targetPath)
-            : $fallbackPath;
+        return $targetTranslation ? $targetTranslation->public_url : $fallbackUrl;
     }
 
-    private function localizedIndustryDetailPath(Request $request, string $currentLocale, string $targetLocale): string
+    private function localizedIndustryDetailUrl(Request $request, string $currentLocale, string $targetLocale): string
     {
-        $fallbackPath = $this->localizedPath($targetLocale, $targetLocale === Locale::Vietnamese->value ? 'linh-vuc' : 'industries');
+        $fallbackUrl = RouteSegments::url('industries', $targetLocale);
         $slug = $request->route('slug');
 
         if (! $slug) {
-            return $fallbackPath;
+            return $fallbackUrl;
         }
 
         $translation = IndustryTranslation::query()
@@ -333,17 +308,15 @@ class ViewServiceProvider extends ServiceProvider
             ->where('locale', $targetLocale)
             ->first();
 
-        return $targetTranslation
-            ? $this->pathFromUrl($targetTranslation->public_url)
-            : $fallbackPath;
+        return $targetTranslation ? $targetTranslation->public_url : $fallbackUrl;
     }
 
-    private function localizedPagePath(Request $request, string $currentLocale, string $targetLocale): string
+    private function localizedPageUrl(Request $request, string $currentLocale, string $targetLocale): string
     {
         $slug = $request->route('slug');
 
         if (! $slug) {
-            return $this->localizedPath($targetLocale, '');
+            return RouteSegments::home($targetLocale);
         }
 
         $translation = PageTranslation::query()
@@ -358,44 +331,17 @@ class ViewServiceProvider extends ServiceProvider
             ->where('is_published', true)
             ->first();
 
-        if (! $targetTranslation) {
-            return $this->localizedPath($targetLocale, '');
-        }
-
-        if ($targetTranslation->page?->is_home) {
-            return $this->localizedPath($targetLocale, '');
-        }
-
-        return $this->localizedPath($targetLocale, $targetTranslation->slug);
+        return $targetTranslation ? $targetTranslation->public_url : RouteSegments::home($targetLocale);
     }
 
-    private function localizedPath(string $locale, string $path): string
-    {
-        $path = trim($path, '/');
-
-        if ($locale === Locale::Vietnamese->value) {
-            return $path === '' ? '/' : '/'.$path;
-        }
-
-        return $path === '' ? '/'.$locale : '/'.$locale.'/'.$path;
-    }
-
-    private function appendQuery(string $path, array $query): string
+    private function appendQuery(string $url, array $query): string
     {
         $query = array_filter($query, fn ($value): bool => filled($value));
 
         if ($query === []) {
-            return $path;
+            return $url;
         }
 
-        return $path.'?'.http_build_query($query);
-    }
-
-    private function pathFromUrl(string $url): string
-    {
-        $path = parse_url($url, PHP_URL_PATH) ?: '/';
-        $query = parse_url($url, PHP_URL_QUERY);
-
-        return $query ? $path.'?'.$query : $path;
+        return $url.'?'.http_build_query($query);
     }
 }

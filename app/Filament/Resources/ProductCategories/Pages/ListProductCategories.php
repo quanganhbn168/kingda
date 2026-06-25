@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\Categories\Pages;
+namespace App\Filament\Resources\ProductCategories\Pages;
 
 use App\Filament\Actions\QuickCatalogImportActions;
-use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Resources\ProductCategories\ProductCategoryResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
-class ListCategories extends ListRecords
+class ListProductCategories extends ListRecords
 {
-    protected static string $resource = CategoryResource::class;
+    protected static string $resource = ProductCategoryResource::class;
 
     protected function getHeaderActions(): array
     {
@@ -19,3 +19,4 @@ class ListCategories extends ListRecords
         ];
     }
 }
+

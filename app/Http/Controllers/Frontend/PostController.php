@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Enums\RouteSegments;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Post;
@@ -31,17 +32,7 @@ class PostController extends Controller
         return $this->renderListing($request, app()->getLocale(), $categorySlug);
     }
 
-    public function localizedCategory(Request $request, string $locale, string $categorySlug): View
-    {
-        return $this->renderListing($request, app()->getLocale(), $categorySlug);
-    }
-
     public function show(Request $request, string $categorySlug, string $postSlug): View
-    {
-        return $this->renderDetail(app()->getLocale(), $categorySlug, $postSlug);
-    }
-
-    public function localizedShow(Request $request, string $locale, string $categorySlug, string $postSlug): View
     {
         return $this->renderDetail(app()->getLocale(), $categorySlug, $postSlug);
     }
@@ -71,8 +62,8 @@ class PostController extends Controller
                     'url' => $this->urls->post($post, $post->translation, $locale),
                 ])->all(),
                 [
-                    ['name' => __('ui.common.home'), 'url' => $this->urls->home($locale)],
-                    ['name' => __('ui.common.news'), 'url' => $this->urls->listing('news', $locale)],
+                    ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+                    ['name' => __('ui.common.news'), 'url' => RouteSegments::url('news', $locale)],
                     ['name' => $activeCategory?->translation?->name, 'url' => $activeCategory?->translation?->public_url],
                 ]
             ),
@@ -96,8 +87,8 @@ class PostController extends Controller
             'alternateUrls' => $this->modelAlternateUrls($post),
             'ogImage' => $this->schema->resolveOgImage($translation),
             'schema' => $this->schema->newsArticle($post, $translation, [
-                ['name' => __('ui.common.home'), 'url' => $this->urls->home($locale)],
-                ['name' => __('ui.common.news'), 'url' => $this->urls->listing('news', $locale)],
+                ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+                ['name' => __('ui.common.news'), 'url' => RouteSegments::url('news', $locale)],
                 ['name' => $categoryTranslation?->name, 'url' => $categoryUrl],
                 ['name' => $translation->title, 'url' => $postUrl],
             ]),

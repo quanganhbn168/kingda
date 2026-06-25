@@ -26,6 +26,7 @@ class Product extends Model
         'unit',
         'is_featured',
         'is_active',
+        'is_home',
         'sort_order',
     ];
 
@@ -34,6 +35,7 @@ class Product extends Model
         'sale_price' => 'decimal:2',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
+        'is_home' => 'boolean',
         'sort_order' => 'integer',
     ];
 

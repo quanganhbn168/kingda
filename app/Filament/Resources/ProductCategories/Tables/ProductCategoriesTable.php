@@ -1,21 +1,29 @@
 <?php
 
-namespace App\Filament\Resources\Pages\Tables;
+namespace App\Filament\Resources\ProductCategories\Tables;
 
-use App\Enums\PageTemplate;
+use App\Enums\CategoryType;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-class PagesTable
+class ProductCategoriesTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('currentTranslation.title')
-                    ->label('Tiêu đề')
+                TextColumn::make('translation.name')
+                    ->label('Tên danh mục')
+                    ->searchable(query: fn ($query, string $search) => $query->whereHas('translations', fn ($query) => $query->where('name', 'like', "%{$search}%")))
+                    ->sortable(),
+                TextColumn::make('parent.translation.name')
+                    ->label('Danh mục cha')
                     ->searchable(),
                 ToggleColumn::make('is_active')
                     ->label('Kích hoạt')
@@ -33,16 +41,20 @@ class PagesTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('sort_order')
-            ->reorderable('sort_order')
             ->filters([
-                //
+                
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order')
             ->toolbarActions([
-                //
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }
+

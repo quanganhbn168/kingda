@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Enums\ContactMessageStatus;
+use App\Enums\RouteSegments;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\StoreProductConsultationRequest;
 use App\Models\Category;
@@ -36,27 +37,12 @@ class ProductController extends Controller
         return $this->renderListing($request, app()->getLocale(), $categorySlug);
     }
 
-    public function localizedCategory(Request $request, string $locale, string $categorySlug): View
-    {
-        return $this->renderListing($request, app()->getLocale(), $categorySlug);
-    }
-
     public function show(Request $request, string $categorySlug, string $productSlug): View
     {
         return $this->renderDetail(app()->getLocale(), $categorySlug, $productSlug);
     }
 
-    public function localizedShow(Request $request, string $locale, string $categorySlug, string $productSlug): View
-    {
-        return $this->renderDetail(app()->getLocale(), $categorySlug, $productSlug);
-    }
-
     public function storeConsultation(StoreProductConsultationRequest $request, Product $product): RedirectResponse
-    {
-        return $this->createConsultation($request, $product);
-    }
-
-    public function localizedStoreConsultation(StoreProductConsultationRequest $request, string $locale, Product $product): RedirectResponse
     {
         return $this->createConsultation($request, $product);
     }
@@ -110,8 +96,8 @@ class ProductController extends Controller
                     'url' => $this->urls->product($product, $product->translation, $locale),
                 ])->all(),
                 [
-                    ['name' => __('ui.common.home'), 'url' => $this->urls->home($locale)],
-                    ['name' => __('ui.common.products'), 'url' => $this->urls->listing('products', $locale)],
+                    ['name' => __('ui.common.home'), 'url' => RouteSegments::home($locale)],
+                    ['name' => __('ui.common.products'), 'url' => RouteSegments::url('products', $locale)],
                     ['name' => $activeCategory?->translation?->name, 'url' => $activeCategory?->translation?->public_url],
                 ]
             ),
@@ -129,8 +115,8 @@ class ProductController extends Controller
             : null;
         $productUrl = $this->urls->product($product, $translation, $locale);
 
-        $homeUrl = $this->urls->home($locale);
-        $listingUrl = $this->urls->listing('products', $locale);
+        $homeUrl = RouteSegments::home($locale);
+        $listingUrl = RouteSegments::url('products', $locale);
 
         $blocks = is_array($translation->blocks) ? $translation->blocks : [];
         $specifications = is_array($translation->specifications) ? $translation->specifications : [];

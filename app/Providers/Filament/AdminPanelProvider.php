@@ -44,6 +44,8 @@ class AdminPanelProvider extends PanelProvider
                 FilamentInfoWidget::class,
             ])
             ->navigationGroups([
+                'Sản phẩm',
+                'Bài viết',
                 'Nội dung',
                 'Vận hành',
                 'Cài đặt',

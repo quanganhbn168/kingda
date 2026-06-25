@@ -11,6 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class ServiceTranslation extends Model implements HasMedia
 {
     use InteractsWithMedia;
+    use \App\Models\Concerns\HasPublicUrl;
 
     protected $fillable = [
         'service_id',
@@ -55,16 +56,9 @@ class ServiceTranslation extends Model implements HasMedia
         $this->addMediaCollection('gallery')->useDisk('public');
     }
 
-    public function getPublicUrlAttribute(): string
+    protected function routeSegmentKey(): string
     {
-        $defaultLocale = config('locales.default', 'vi');
-        $locale = $this->locale ?: $defaultLocale;
-        $segment = $locale === 'vi' ? 'dich-vu' : 'services';
-        $path = $segment . '/' . trim($this->slug, '/');
-
-        return $locale === $defaultLocale
-            ? url('/' . $path)
-            : url('/' . $locale . '/' . $path);
+        return 'services';
     }
 
     public function getMetaTitleAttribute(): string

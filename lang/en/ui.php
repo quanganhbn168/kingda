@@ -18,6 +18,7 @@ return [
     ],
     'common' => [
         'kingda' => 'Kingda',
+        'about' => 'About',
         'all' => 'All',
         'all_categories' => 'All categories',
         'product_categories' => 'Product categories',
@@ -128,4 +129,21 @@ return [
         'privacy_terms' => 'Privacy policy | Terms of use',
         'rights' => 'All rights reserved.',
     ],
+    'seo' => [
+        'about' => [
+            'description' => 'Kingda provides electronic printing materials, coating and functional material solutions for industrial manufacturing.'
+        ],
+        'products' => [
+            'description' => 'Kingda product categories and application material solutions.'
+        ],
+        'news' => [
+            'description' => 'Latest updates, activities and material application insights.'
+        ],
+        'contact' => [
+            'description' => 'Contact Kingda for tailored solution consulting.'
+        ],
+        'industries' => [
+            'description' => 'Industries applying Kingda materials, inks and industrial coating solutions.'
+        ]
+    ]
 ];
