@@ -27,6 +27,7 @@ return [
         'products' => 'Sản phẩm',
         'news' => 'Tin tức',
         'industries' => 'Lĩnh vực',
+        'certificates' => 'Chứng nhận',
         'contact' => 'Liên hệ',
         'specifications' => 'Thông số kỹ thuật',
         'contact_product_hint' => 'Gửi yêu cầu để Kingda tư vấn vật liệu và giải pháp phù hợp cho sản phẩm này.',

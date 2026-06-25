@@ -1,59 +1,6 @@
 @extends('layouts.master')
 
 @section('content')
-    @php
-        use Illuminate\Support\Str;
-
-        $locale = app()->getLocale();
-
-        $homeUrl = url($locale === 'vi' ? '/' : '/' . $locale);
-        $listingUrl = url($locale === 'vi' ? '/san-pham' : '/' . $locale . '/products');
-
-        $categoryTranslation = $categoryTranslation ?? (
-            $product->category?->relationLoaded('translations')
-                ? $product->category->translations->firstWhere('locale', $locale)
-                : $product->category?->translationFor($locale)->first()
-        );
-
-        $categoryUrl = $categoryUrl ?? (
-            $categoryTranslation?->slug
-                ? url($locale === 'vi'
-                    ? '/san-pham/' . $categoryTranslation->slug
-                    : '/' . $locale . '/products/' . $categoryTranslation->slug)
-                : null
-        );
-
-        $mainImage = $product->displayImageUrl($translation);
-
-        $blocks = is_array($translation->blocks) ? $translation->blocks : [];
-        $specifications = is_array($translation->specifications) ? $translation->specifications : [];
-
-        $applications = collect($blocks['applications'] ?? [])->filter()->values();
-        $substrates = collect($blocks['substrates'] ?? [])->filter()->values();
-        $features = collect($blocks['features'] ?? [])->filter()->values();
-
-        $consultingInputs = collect($blocks['consulting_inputs'] ?? [])->filter()->values();
-
-        if ($consultingInputs->isEmpty()) {
-            $consultingInputs = collect(__('ui.product_detail.default_consulting_inputs'));
-        }
-
-        $storageNotes = collect($blocks['storage_notes'] ?? [])->filter()->values();
-
-        $productFaq = collect($blocks['faq'] ?? [])
-            ->filter(fn ($item): bool => is_array($item) && filled($item['question'] ?? null))
-            ->values();
-
-        $categoryName = $categoryTranslation?->name ?: __('ui.common.products');
-        $relatedCount = $relatedProducts->count();
-
-        $quickFacts = collect([
-            ['label' => __('ui.product_detail.category'), 'value' => $categoryName],
-            ['label' => __('ui.product_detail.sku'), 'value' => $product->sku],
-            ['label' => __('ui.product_detail.main_application'), 'value' => $applications->isNotEmpty() ? Str::limit($applications->first(), 80) : null],
-            ['label' => __('ui.product_detail.substrate'), 'value' => $substrates->isNotEmpty() ? $substrates->take(3)->implode(', ') : null],
-        ])->filter(fn (array $item): bool => filled($item['value'] ?? null))->values();
-    @endphp
 
     <div
         x-data="{ consultationOpen: @js($errors->getBag('productConsultation')->any()) }"
@@ -167,202 +114,199 @@
             </div>
 
             <div class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-                <main class="min-w-0 space-y-8">
-
-                    @if($applications->isNotEmpty())
-                        <section id="ung-dung" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
-                            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                                <div>
-                                    <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                        {{ __('ui.product_detail.applications') }}
-                                    </p>
-
-                                    <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                        {{ __('ui.product_detail.suitable_applications') }}
-                                    </h2>
-                                </div>
-
-                                <p class="max-w-xl text-sm leading-6 text-slate-500">
-                                    {{ __('ui.product_detail.applications_description') }}
-                                </p>
-                            </div>
-
-                            <div class="mt-7 grid gap-4 md:grid-cols-2">
-                                @foreach($applications as $item)
-                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                                        <div class="flex gap-4">
-                                            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
-                                                <i class="fa-solid fa-check"></i>
-                                            </span>
-
-                                            <p class="text-sm leading-7 text-slate-700">
-                                                {{ $item }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </section>
-                    @endif
-
-                    @if($substrates->isNotEmpty())
-                        <section id="nen-vat-lieu" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
-                            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                                <div>
-                                    <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                        {{ __('ui.product_detail.substrates') }}
-                                    </p>
-
-                                    <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                        {{ __('ui.product_detail.compatibility') }}
-                                    </h2>
-                                </div>
-
-                                <p class="max-w-xl text-sm leading-6 text-slate-500">
-                                    {{ __('ui.product_detail.compatibility_note') }}
-                                </p>
-                            </div>
-
-                            <div class="mt-7 flex flex-wrap gap-3">
-                                @foreach($substrates as $item)
-                                    <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-extrabold text-slate-700">
-                                        <i class="fa-solid fa-circle-check text-primary"></i>
-                                        {{ $item }}
-                                    </span>
-                                @endforeach
-                            </div>
-                        </section>
-                    @endif
-
-                    @if($features->isNotEmpty())
-                        <section id="dac-tinh" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
-                            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                                <div>
-                                    <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                        {{ __('ui.product_detail.features') }}
-                                    </p>
-
-                                    <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                        {{ __('ui.product_detail.technical_features') }}
-                                    </h2>
-                                </div>
-                            </div>
-
-                            <div class="mt-7 grid gap-4">
-                                @foreach($features as $item)
-                                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                        <div class="flex gap-4">
-                                            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-primary">
-                                                <i class="fa-solid fa-star"></i>
-                                            </span>
-
-                                            <p class="text-sm leading-7 text-slate-700">
-                                                {{ $item }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </section>
-                    @endif
-
-                    <section id="thong-so" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
-                        <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                            <div>
+                <main class="min-w-0">
+                    <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 divide-y divide-slate-100">
+                        @if($translation->content)
+                            <section id="noi-dung" class="kd-detail-section p-6 md:p-8">
                                 <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                    {{ __('ui.product_detail.specifications') }}
+                                    {{ __('ui.product_detail.details') }}
+                                </p>
+
+                                <div class="prose prose-slate mt-5 max-w-none prose-headings:text-primary prose-a:text-blue-600 prose-img:rounded-xl prose-img:shadow-md">
+                                    {!! $translation->content !!}
+                                </div>
+                            </section>
+                        @endif
+
+                        @if($applications->isNotEmpty())
+                            <section id="ung-dung" class="kd-detail-section p-6 md:p-8">
+                                <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                                    <div>
+                                        <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
+                                            {{ __('ui.product_detail.applications') }}
+                                        </p>
+
+                                        <h2 class="mt-2 text-3xl font-black text-slate-950">
+                                            {{ __('ui.product_detail.suitable_applications') }}
+                                        </h2>
+                                    </div>
+
+                                    <p class="max-w-xl text-sm leading-6 text-slate-500">
+                                        {{ __('ui.product_detail.applications_description') }}
+                                    </p>
+                                </div>
+
+                                <ul class="mt-7 space-y-4">
+                                    @foreach($applications as $item)
+                                        <li class="flex items-start gap-4">
+                                            <span class="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary shadow-sm"></span>
+                                            <span class="text-base leading-relaxed text-slate-700">
+                                                {{ $item }}
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </section>
+                        @endif
+
+                        @if($substrates->isNotEmpty())
+                            <section id="nen-vat-lieu" class="kd-detail-section p-6 md:p-8">
+                                <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                                    <div>
+                                        <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
+                                            {{ __('ui.product_detail.substrates') }}
+                                        </p>
+
+                                        <h2 class="mt-2 text-3xl font-black text-slate-950">
+                                            {{ __('ui.product_detail.compatibility') }}
+                                        </h2>
+                                    </div>
+
+                                    <p class="max-w-xl text-sm leading-6 text-slate-500">
+                                        {{ __('ui.product_detail.compatibility_note') }}
+                                    </p>
+                                </div>
+
+                                <div class="mt-7 flex flex-wrap gap-2.5">
+                                    @foreach($substrates as $item)
+                                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-3.5 py-1.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200">
+                                            {{ $item }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
+
+                        @if($features->isNotEmpty())
+                            <section id="dac-tinh" class="kd-detail-section p-6 md:p-8">
+                                <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                                    <div>
+                                        <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
+                                            {{ __('ui.product_detail.features') }}
+                                        </p>
+
+                                        <h2 class="mt-2 text-3xl font-black text-slate-950">
+                                            {{ __('ui.product_detail.technical_features') }}
+                                        </h2>
+                                    </div>
+                                </div>
+
+                                <ul class="mt-7 space-y-4">
+                                    @foreach($features as $item)
+                                        <li class="flex items-start gap-4">
+                                            <span class="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary shadow-sm"></span>
+                                            <span class="text-base leading-relaxed text-slate-700">
+                                                {{ $item }}
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </section>
+                        @endif
+
+                        <section id="thong-so" class="kd-detail-section p-6 md:p-8">
+                            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                                <div>
+                                    <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
+                                        {{ __('ui.product_detail.specifications') }}
+                                    </p>
+
+                                    <h2 class="mt-2 text-3xl font-black text-slate-950">
+                                        {{ __('ui.product_detail.reference_specifications') }}
+                                    </h2>
+                                </div>
+
+                                <p class="max-w-xl text-sm leading-6 text-slate-500">
+                                    {{ __('ui.product_detail.specifications_note') }}
+                                </p>
+                            </div>
+
+                            @if(! empty($specifications))
+                                <dl class="mt-7 overflow-hidden rounded-2xl border border-slate-200">
+                                    @foreach($specifications as $key => $value)
+                                        <div class="grid gap-2 border-b border-slate-200 bg-white p-4 last:border-b-0 md:grid-cols-3">
+                                            <dt class="font-extrabold text-slate-900">
+                                                {{ $key }}
+                                            </dt>
+
+                                            <dd class="leading-6 text-slate-600 md:col-span-2">
+                                                {{ $value }}
+                                            </dd>
+                                        </div>
+                                    @endforeach
+                                </dl>
+                            @else
+                                <div class="mt-7 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-7 text-slate-500">
+                                    {{ __('ui.product_detail.specifications_empty') }}
+                                </div>
+                            @endif
+                        </section>
+
+                        @if($storageNotes->isNotEmpty())
+                            <section id="bao-quan" class="kd-detail-section bg-amber-50/40 p-6 md:p-8">
+                                <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
+                                    {{ __('ui.product_detail.storage') }}
                                 </p>
 
                                 <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                    {{ __('ui.product_detail.reference_specifications') }}
+                                    {{ __('ui.product_detail.storage_notes') }}
                                 </h2>
-                            </div>
 
-                            <p class="max-w-xl text-sm leading-6 text-slate-500">
-                                {{ __('ui.product_detail.specifications_note') }}
-                            </p>
-                        </div>
-
-                        @if(! empty($specifications))
-                            <dl class="mt-7 overflow-hidden rounded-2xl border border-slate-200">
-                                @foreach($specifications as $key => $value)
-                                    <div class="grid gap-2 border-b border-slate-200 bg-white p-4 last:border-b-0 md:grid-cols-3">
-                                        <dt class="font-extrabold text-slate-900">
-                                            {{ $key }}
-                                        </dt>
-
-                                        <dd class="leading-6 text-slate-600 md:col-span-2">
-                                            {{ $value }}
-                                        </dd>
+                                <div class="mt-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5 rounded-2xl border border-amber-200 bg-amber-50 p-6">
+                                    <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-sm">
+                                        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
                                     </div>
-                                @endforeach
-                            </dl>
-                        @else
-                            <div class="mt-7 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-7 text-slate-500">
-                                {{ __('ui.product_detail.specifications_empty') }}
-                            </div>
+                                    <ul class="flex flex-col gap-3 py-1">
+                                        @foreach($storageNotes as $note)
+                                            <li class="flex items-start gap-3">
+                                                <span class="mt-2.5 size-1.5 shrink-0 rounded-full bg-amber-400"></span>
+                                                <span class="text-base leading-relaxed text-amber-900">
+                                                    {{ $note }}
+                                                </span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </section>
                         @endif
-                    </section>
 
-                    @if($translation->content)
-                        <section id="noi-dung" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
-                            <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                {{ __('ui.product_detail.details') }}
-                            </p>
+                        @if($productFaq->isNotEmpty())
+                            <section id="faq" class="kd-detail-section p-6 md:p-8">
+                                <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
+                                    FAQ
+                                </p>
 
-                            <div class="kd-product-content mt-5">
-                                {!! $translation->content !!}
-                            </div>
-                        </section>
-                    @endif
+                                <h2 class="mt-2 text-3xl font-black text-slate-950">
+                                    {{ __('ui.product_detail.faq') }}
+                                </h2>
 
-                    @if($storageNotes->isNotEmpty())
-                        <section id="bao-quan" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
-                            <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                {{ __('ui.product_detail.storage') }}
-                            </p>
+                                <div class="mt-7 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200">
+                                    @foreach($productFaq as $item)
+                                        <details class="group bg-white p-5 open:bg-slate-50">
+                                            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-black text-slate-950">
+                                                <span>{{ $item['question'] ?? '' }}</span>
+                                                <i class="fa-solid fa-chevron-down text-primary transition group-open:rotate-180"></i>
+                                            </summary>
 
-                            <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                {{ __('ui.product_detail.storage_notes') }}
-                            </h2>
-
-                            <div class="mt-7 grid gap-4 md:grid-cols-2">
-                                @foreach($storageNotes as $note)
-                                    <div class="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-slate-700">
-                                        <i class="fa-solid fa-circle-check mt-1 text-amber-600"></i>
-                                        <span>{{ $note }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </section>
-                    @endif
-
-                    @if($productFaq->isNotEmpty())
-                        <section id="faq" class="kd-detail-section rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
-                            <p class="text-xs font-extrabold uppercase tracking-wide text-primary">
-                                FAQ
-                            </p>
-
-                            <h2 class="mt-2 text-3xl font-black text-slate-950">
-                                {{ __('ui.product_detail.faq') }}
-                            </h2>
-
-                            <div class="mt-7 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200">
-                                @foreach($productFaq as $item)
-                                    <details class="group bg-white p-5 open:bg-slate-50">
-                                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-black text-slate-950">
-                                            <span>{{ $item['question'] ?? '' }}</span>
-                                            <i class="fa-solid fa-chevron-down text-primary transition group-open:rotate-180"></i>
-                                        </summary>
-
-                                        <p class="mt-4 text-sm leading-7 text-slate-600">
-                                            {{ $item['answer'] ?? '' }}
-                                        </p>
-                                    </details>
-                                @endforeach
-                            </div>
-                        </section>
-                    @endif
+                                            <p class="mt-4 text-sm leading-7 text-slate-600">
+                                                {{ $item['answer'] ?? '' }}
+                                            </p>
+                                        </details>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
+                    </div>
                 </main>
 
                 <aside class="space-y-5 lg:sticky lg:top-24 lg:self-start">
@@ -434,21 +378,9 @@
 
                     <div class="mt-6 grid gap-5 md:grid-cols-3">
                         @foreach($relatedProducts as $related)
-                            @php
-                                $relatedTranslation = $related->translation;
-                                $relatedCategoryTranslation = $related->category?->translation;
-                                $relatedImage = $related->displayImageUrl($relatedTranslation);
-
-                                $relatedUrl = $relatedTranslation?->slug
-                                    ? url($locale === 'vi'
-                                        ? '/san-pham/' . collect([$relatedCategoryTranslation?->slug, $relatedTranslation->slug])->filter()->join('/')
-                                        : '/' . $locale . '/products/' . collect([$relatedCategoryTranslation?->slug, $relatedTranslation->slug])->filter()->join('/'))
-                                    : '#';
-                            @endphp
-
-                            <a href="{{ $relatedUrl }}" class="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl">
-                                @if($relatedImage)
-                                    <img src="{{ $relatedImage }}" alt="{{ $relatedTranslation?->name }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-105">
+                            <a href="{{ $related->formatted_url }}" class="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl">
+                                @if($related->formatted_image)
+                                    <img src="{{ $related->formatted_image }}" alt="{{ $related->translation?->name }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-105">
                                 @else
                                     <div class="flex h-52 w-full items-center justify-center bg-slate-100 text-slate-400">
                                         <div class="text-center">
@@ -466,12 +398,12 @@
                                     </p>
 
                                     <h3 class="mt-2 text-lg font-black leading-snug text-slate-950">
-                                        {{ $relatedTranslation?->name }}
+                                        {{ $related->translation?->name }}
                                     </h3>
 
-                                    @if($relatedTranslation?->description)
+                                    @if($related->translation?->description)
                                         <p class="mt-2 text-sm leading-6 text-slate-600">
-                                            {{ Str::limit($relatedTranslation->description, 115) }}
+                                            {{ \Illuminate\Support\Str::limit($related->translation->description, 115) }}
                                         </p>
                                     @endif
 

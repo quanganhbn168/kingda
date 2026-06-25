@@ -364,8 +364,17 @@ class ManageSettings extends Page
             Section::make('Thông tin mặc định')
                 ->columns(2)
                 ->schema([
-                    Textarea::make('default_address')->label('Địa chỉ'),
-                    TextInput::make('default_working_hours')->label('Giờ làm việc')->maxLength(255),
+                    Tabs::make('Thông tin địa chỉ và giờ làm việc theo ngôn ngữ')
+                        ->tabs(collect(Locale::cases())
+                            ->map(fn (Locale $locale): Tab => Tab::make($locale->label())
+                                ->schema([
+                                    Textarea::make('default_address.'.$locale->value)
+                                        ->label('Địa chỉ'),
+                                    TextInput::make('default_working_hours.'.$locale->value)
+                                        ->label('Giờ làm việc')
+                                        ->maxLength(255),
+                                ]))
+                            ->all())->columnSpanFull(),
                     TextInput::make('default_google_map_url')->label('Google Map URL')->url(),
                     Textarea::make('default_google_map_embed')->label('Google Map embed')->columnSpanFull(),
                     TextInput::make('contact_form_receiver_email')->label('Email nhận form')->email(),

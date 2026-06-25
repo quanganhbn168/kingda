@@ -27,6 +27,7 @@ return [
         'products' => '产品',
         'news' => '新闻',
         'industries' => '应用领域',
+        'certificates' => '资质认证',
         'contact' => '联系',
         'specifications' => '技术参数',
         'contact_product_hint' => '提交需求，金达将为该产品推荐合适的材料与解决方案。',

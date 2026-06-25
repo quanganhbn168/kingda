@@ -4,25 +4,25 @@
 
 @section('content')
     @php
-        $hero = $aboutSettings['hero'] ?? [];
-        $intro = $aboutSettings['intro'] ?? [];
-        $development = $aboutSettings['development'] ?? [];
-        $timeline = $aboutSettings['timeline'] ?? [];
-        $culture = $aboutSettings['culture'] ?? [];
-        $capabilities = $aboutSettings['capabilities'] ?? [];
-        $certificates = $aboutSettings['certificates'] ?? [];
-        $intellectualProperty = $aboutSettings['intellectual_property'] ?? [];
-        $customers = $aboutSettings['customers'] ?? [];
-        $contact = $aboutSettings['contact'] ?? [];
-        $heroImage = $hero['image'] ?: asset('images/about/kingda-hero-rd.jpg');
-        $introImage = $intro['image'] ?: asset('images/about/kingda-office.jpg');
-        $introSmallImageOne = $intro['small_image_one'] ?: asset('images/about/kingda-lab.jpg');
-        $introSmallImageTwo = $intro['small_image_two'] ?: asset('images/about/kingda-production.jpg');
+        $hero = $aboutSettings->hero ?? new \Illuminate\Support\Fluent();
+        $intro = $aboutSettings->intro ?? new \Illuminate\Support\Fluent();
+        $development = $aboutSettings->development ?? new \Illuminate\Support\Fluent();
+        $timeline = $aboutSettings->timeline ?? new \Illuminate\Support\Fluent();
+        $culture = $aboutSettings->culture ?? new \Illuminate\Support\Fluent();
+        $capabilities = $aboutSettings->capabilities ?? new \Illuminate\Support\Fluent();
+        $certificates = $aboutSettings->certificates ?? new \Illuminate\Support\Fluent();
+        $intellectualProperty = $aboutSettings->intellectual_property ?? new \Illuminate\Support\Fluent();
+        $customers = $aboutSettings->customers ?? new \Illuminate\Support\Fluent();
+        $contact = $aboutSettings->contact ?? new \Illuminate\Support\Fluent();
+        $heroImage = $hero->image ?: asset('images/about/kingda-hero-rd.jpg');
+        $introImage = $intro->image ?: asset('images/about/kingda-office.jpg');
+        $introSmallImageOne = $intro->small_image_one ?: asset('images/about/kingda-lab.jpg');
+        $introSmallImageTwo = $intro->small_image_two ?: asset('images/about/kingda-production.jpg');
         $localizedContactUrl = app()->getLocale() === 'vi'
             ? url('/lien-he')
             : url('/' . app()->getLocale() . '/contact');
-        $contactButtonUrl = filled($contact['button_url'] ?? null) && $contact['button_url'] !== '/lien-he'
-            ? $contact['button_url']
+        $contactButtonUrl = filled($contact->button_url ?? null) && $contact->button_url !== '/lien-he'
+            ? $contact->button_url
             : $localizedContactUrl;
     @endphp
 
@@ -32,29 +32,29 @@
             <div class="about-container">
                 <div class="about-hero__inner">
                     <div class="about-hero__content" data-aos="fade-up">
-                        @if(filled($hero['eyebrow'] ?? null))
-                            <div class="about-eyebrow">{{ $hero['eyebrow'] }}</div>
+                        @if(filled($hero->eyebrow ?? null))
+                            <div class="about-eyebrow">{{ $hero->eyebrow }}</div>
                         @endif
-                        <h1>{{ $hero['title'] ?? $translation->headline ?? $translation->title }}</h1>
-                        @if(filled($hero['description'] ?? null))
-                            <p>{{ $hero['description'] }}</p>
+                        <h1>{{ $hero->title ?? $translation->headline ?? $translation->title }}</h1>
+                        @if(filled($hero->description ?? null))
+                            <p>{{ $hero->description }}</p>
                         @endif
                         <div class="about-hero__actions">
-                            <a href="#about-intro" class="about-btn about-btn--primary">{{ $hero['primary_button_label'] ?? '' }}</a>
-                            <a href="#about-culture" class="about-btn about-btn--ghost">{{ $hero['secondary_button_label'] ?? '' }}</a>
+                            <a href="#about-intro" class="about-btn about-btn--primary">{{ $hero->primary_button_label ?? '' }}</a>
+                            <a href="#about-culture" class="about-btn about-btn--ghost">{{ $hero->secondary_button_label ?? '' }}</a>
                         </div>
                     </div>
                     <div class="about-hero__visual" data-aos="fade-left">
                         <div class="about-hero__card about-hero__card--main">
-                            <img src="{{ $heroImage }}" alt="{{ $hero['title'] ?? $translation->title }}">
+                            <img src="{{ $heroImage }}" alt="{{ $hero->title ?? $translation->title }}">
                         </div>
                         <div class="about-hero__floating about-hero__floating--one">
-                            <strong>{{ $hero['floating_one_value'] ?? '' }}</strong>
-                            <span>{{ $hero['floating_one_label'] ?? '' }}</span>
+                            <strong>{{ $hero->floating_one_value ?? '' }}</strong>
+                            <span>{{ $hero->floating_one_label ?? '' }}</span>
                         </div>
                         <div class="about-hero__floating about-hero__floating--two">
-                            <strong>{{ $hero['floating_two_value'] ?? '' }}</strong>
-                            <span>{{ $hero['floating_two_label'] ?? '' }}</span>
+                            <strong>{{ $hero->floating_two_value ?? '' }}</strong>
+                            <span>{{ $hero->floating_two_label ?? '' }}</span>
                         </div>
                     </div>
                 </div>
@@ -67,26 +67,26 @@
                     <div class="about-intro__media" data-aos="fade-right">
                         <div class="about-image-stack">
                             <div class="about-image-stack__main">
-                                <img src="{{ $introImage }}" alt="{{ $intro['title'] ?? $translation->title }}">
+                                <img src="{{ $introImage }}" alt="{{ $intro->title ?? $translation->title }}">
                             </div>
                             <div class="about-image-stack__small about-image-stack__small--one">
-                                <img src="{{ $introSmallImageOne }}" alt="{{ $intro['title'] ?? $translation->title }}">
+                                <img src="{{ $introSmallImageOne }}" alt="{{ $intro->title ?? $translation->title }}">
                             </div>
 
                         </div>
                     </div>
                     <div class="about-intro__content" data-aos="fade-left">
-                        <div class="about-section-label">{{ $intro['eyebrow'] ?? '' }}</div>
-                        <h2>{{ $intro['title'] ?? '' }}</h2>
-                        @foreach(preg_split('/\R{2,}/', trim($intro['content'] ?? ''), -1, PREG_SPLIT_NO_EMPTY) as $paragraph)
+                        <div class="about-section-label">{{ $intro->eyebrow ?? '' }}</div>
+                        <h2>{{ $intro->title ?? '' }}</h2>
+                        @foreach(preg_split('/\R{2,}/', trim($intro->content ?? ''), -1, PREG_SPLIT_NO_EMPTY) as $paragraph)
                             <p>{{ $paragraph }}</p>
                         @endforeach
-                        @if(! empty($intro['stats']))
+                        @if($intro->stats?->isNotEmpty())
                             <div class="about-intro__stats">
-                                @foreach($intro['stats'] as $stat)
+                                @foreach($intro->stats as $stat)
                                     <div>
-                                        <strong>{{ $stat['value'] ?? '' }}</strong>
-                                        <span>{{ $stat['label'] ?? '' }}</span>
+                                        <strong>{{ $stat->value ?? '' }}</strong>
+                                        <span>{{ $stat->label ?? '' }}</span>
                                     </div>
                                 @endforeach
                             </div>
@@ -99,16 +99,16 @@
         <section class="about-section about-development">
             <div class="about-container">
                 <div class="about-section-head about-section-head--center" data-aos="fade-up">
-                    <div class="about-section-label">{{ $development['eyebrow'] ?? '' }}</div>
-                    <h2>{{ $development['title'] ?? '' }}</h2>
-                    <p>{{ $development['description'] ?? '' }}</p>
+                    <div class="about-section-label">{{ $development->eyebrow ?? '' }}</div>
+                    <h2>{{ $development->title ?? '' }}</h2>
+                    <p>{{ $development->description ?? '' }}</p>
                 </div>
                 <div class="about-development__grid">
-                    @foreach($development['items'] ?? [] as $index => $item)
+                    @foreach($development->items ?? [] as $index => $item)
                         <article class="about-development-card" data-aos="fade-up" data-aos-delay="{{ $index * 120 }}">
-                            <span>{{ $item['number'] ?? str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}</span>
-                            <h3>{{ $item['title'] ?? '' }}</h3>
-                            <p>{{ $item['description'] ?? '' }}</p>
+                            <span>{{ $item->number ?? str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                            <h3>{{ $item->title ?? '' }}</h3>
+                            <p>{{ $item->description ?? '' }}</p>
                         </article>
                     @endforeach
                 </div>
@@ -118,16 +118,16 @@
         <section class="about-section about-timeline">
             <div class="about-container">
                 <div class="about-section-head" data-aos="fade-up">
-                    <div class="about-section-label">{{ $timeline['eyebrow'] ?? '' }}</div>
-                    <h2>{{ $timeline['title'] ?? '' }}</h2>
+                    <div class="about-section-label">{{ $timeline->eyebrow ?? '' }}</div>
+                    <h2>{{ $timeline->title ?? '' }}</h2>
                 </div>
                 <div class="about-timeline__list">
-                    @foreach($timeline['items'] ?? [] as $index => $item)
+                    @foreach($timeline->items ?? [] as $index => $item)
                         <article class="about-timeline-item" data-aos="fade-up" data-aos-delay="{{ $index * 80 }}">
-                            <div class="about-timeline-item__year">{{ $item['year'] ?? '' }}</div>
+                            <div class="about-timeline-item__year">{{ $item->year ?? '' }}</div>
                             <div class="about-timeline-item__body">
-                                <h3>{{ $item['title'] ?? '' }}</h3>
-                                <p>{{ $item['description'] ?? '' }}</p>
+                                <h3>{{ $item->title ?? '' }}</h3>
+                                <p>{{ $item->description ?? '' }}</p>
                             </div>
                         </article>
                     @endforeach
@@ -139,23 +139,23 @@
             <div class="about-container">
                 <div class="about-culture__layout">
                     <div class="about-culture__intro" data-aos="fade-right">
-                        <div class="about-section-label">{{ $culture['eyebrow'] ?? '' }}</div>
-                        <h2>{{ $culture['title'] ?? '' }}</h2>
-                        <p>{{ $culture['description'] ?? '' }}</p>
+                        <div class="about-section-label">{{ $culture->eyebrow ?? '' }}</div>
+                        <h2>{{ $culture->title ?? '' }}</h2>
+                        <p>{{ $culture->description ?? '' }}</p>
                         <div class="about-culture__highlight">
                             <div class="about-culture__icon">✦</div>
                             <div>
-                                <h3>{{ $culture['highlight_title'] ?? '' }}</h3>
-                                <p>{{ $culture['highlight_description'] ?? '' }}</p>
+                                <h3>{{ $culture->highlight_title ?? '' }}</h3>
+                                <p>{{ $culture->highlight_description ?? '' }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="about-culture__cards" data-aos="fade-left">
-                        @foreach($culture['items'] ?? [] as $item)
+                        @foreach($culture->items ?? [] as $item)
                             <article class="about-culture-card">
-                                <div class="about-culture-card__icon">{{ $item['icon'] ?? '✦' }}</div>
-                                <h3>{{ $item['title'] ?? '' }}</h3>
-                                <p>{{ $item['description'] ?? '' }}</p>
+                                <div class="about-culture-card__icon">{{ $item->icon ?? '✦' }}</div>
+                                <h3>{{ $item->title ?? '' }}</h3>
+                                <p>{{ $item->description ?? '' }}</p>
                             </article>
                         @endforeach
                     </div>
@@ -167,12 +167,12 @@
             <div class="about-container">
                 <div class="about-cta__inner" data-aos="fade-up">
                     <div>
-                        <span>{{ $contact['eyebrow'] ?? '' }}</span>
-                        <h2>{{ $contact['title'] ?? '' }}</h2>
-                        <p>{{ $contact['description'] ?? '' }}</p>
+                        <span>{{ $contact->eyebrow ?? '' }}</span>
+                        <h2>{{ $contact->title ?? '' }}</h2>
+                        <p>{{ $contact->description ?? '' }}</p>
                     </div>
                     <a href="{{ $contactButtonUrl }}" class="about-btn about-btn--light">
-                        {{ $contact['button_label'] ?? '' }}
+                        {{ $contact->button_label ?? '' }}
                     </a>
                 </div>
             </div>

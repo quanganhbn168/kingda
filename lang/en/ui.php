@@ -27,6 +27,7 @@ return [
         'products' => 'Products',
         'news' => 'News',
         'industries' => 'Industries',
+        'certificates' => 'Certificates',
         'contact' => 'Contact',
         'specifications' => 'Specifications',
         'contact_product_hint' => 'Send a request so Kingda can recommend suitable materials and solutions for this product.',

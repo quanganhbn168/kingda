@@ -78,7 +78,6 @@ class ProductCatalogService
                 ->where('is_published', true))
             ->with([
                 'product.category.translations',
-                'product.translations.media',
                 'media',
             ])
             ->firstOrFail();
@@ -107,10 +106,11 @@ class ProductCatalogService
             ->with([
                 'translation' => fn ($query) => $query->where('locale', $locale),
                 'translation.media',
+                'category.translation' => fn ($query) => $query->where('locale', $locale),
+            ] + ($locale !== 'vi' ? [
                 'translations' => fn ($query) => $query->where('locale', 'vi'),
                 'translations.media',
-                'category.translation' => fn ($query) => $query->where('locale', $locale),
-            ])
+            ] : []))
             ->ordered()
             ->limit(3)
             ->get();

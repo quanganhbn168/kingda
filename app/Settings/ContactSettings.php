@@ -20,9 +20,9 @@ class ContactSettings extends Settings
 
     public ?string $wechat_qr_image;
 
-    public ?string $default_address;
+    public ?array $default_address;
 
-    public ?string $default_working_hours;
+    public ?array $default_working_hours;
 
     public ?string $default_google_map_url;
 

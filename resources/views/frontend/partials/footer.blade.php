@@ -36,8 +36,18 @@
                 <p class="mt-5 whitespace-pre-line text-sm leading-6 text-slate-300">{{ $footerDescription }}</p>
             @endif
 
+            @php
+                $footerAddress = data_get($contactSettings->default_address ?? [], $locale)
+                    ?: data_get($contactSettings->default_address ?? [], 'vi')
+                    ?: 'Tầng 1, số 27 Trần Quang Khải, Phường Võ Cường, Tỉnh Bắc Ninh, Việt Nam';
+            @endphp
             <div class="mt-4 space-y-2 text-sm text-slate-300">
-                <p>{{ $contactSettings->default_address ?: 'Tầng 1, số 27 Trần Quang Khải, Phường Võ Cường, Tỉnh Bắc Ninh, Việt Nam' }}</p>
+                <p>{{ $footerAddress }}</p>
+                @if(!empty($contactSettings->hotlines[0]['phone']) || !empty($contactSettings->phones[0]['phone']))
+                    <p>{{ $contactSettings->hotlines[0]['phone'] ?? $contactSettings->phones[0]['phone'] }}</p>
+                @else
+                    <p>0222 368 6268</p>
+                @endif
                 <p>{{ ($contactSettings->emails[0]['email'] ?? null) ?: 'kingdah@gmail.com' }}</p>
             </div>
         </div>

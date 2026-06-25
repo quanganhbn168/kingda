@@ -15,6 +15,7 @@ use App\Services\Frontend\SeoSchemaBuilder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -128,17 +129,68 @@ class ProductController extends Controller
             : null;
         $productUrl = $this->urls->product($product, $translation, $locale);
 
+        $homeUrl = $this->urls->home($locale);
+        $listingUrl = $this->urls->listing('products', $locale);
+
+        $blocks = is_array($translation->blocks) ? $translation->blocks : [];
+        $specifications = is_array($translation->specifications) ? $translation->specifications : [];
+
+        $applications = collect($blocks['applications'] ?? [])->filter()->values();
+        $substrates = collect($blocks['substrates'] ?? [])->filter()->values();
+        $features = collect($blocks['features'] ?? [])->filter()->values();
+
+        $consultingInputs = collect($blocks['consulting_inputs'] ?? [])->filter()->values();
+        if ($consultingInputs->isEmpty()) {
+            $consultingInputs = collect(__('ui.product_detail.default_consulting_inputs'));
+        }
+
+        $storageNotes = collect($blocks['storage_notes'] ?? [])->filter()->values();
+
+        $productFaq = collect($blocks['faq'] ?? [])
+            ->filter(fn ($item): bool => is_array($item) && filled($item['question'] ?? null))
+            ->values();
+
+        $categoryName = $categoryTranslation?->name ?: __('ui.common.products');
+        
+        $relatedCount = $data['relatedProducts']->count();
+        $data['relatedProducts']->each(function ($related) use ($locale) {
+            $related->formatted_url = $this->urls->product($related, $related->translation, $locale) ?: '#';
+            $related->formatted_image = $related->displayImageUrl($related->translation);
+        });
+
+        $quickFacts = collect([
+            ['label' => __('ui.product_detail.category'), 'value' => $categoryName],
+            ['label' => __('ui.product_detail.sku'), 'value' => $product->sku],
+            ['label' => __('ui.product_detail.main_application'), 'value' => $applications->isNotEmpty() ? Str::limit($applications->first(), 80) : null],
+            ['label' => __('ui.product_detail.substrate'), 'value' => $substrates->isNotEmpty() ? $substrates->take(3)->implode(', ') : null],
+        ])->filter(fn (array $item): bool => filled($item['value'] ?? null))->values();
+
         return view('frontend.pages.templates.product-detail', [
             ...$data,
             'categoryUrl' => $categoryUrl,
             'alternateUrls' => $this->modelAlternateUrls($product),
             'ogImage' => $this->schema->resolveOgImage($translation),
             'schema' => $this->schema->product($product, $translation, [
-                ['name' => __('ui.common.home'), 'url' => $this->urls->home($locale)],
-                ['name' => __('ui.common.products'), 'url' => $this->urls->listing('products', $locale)],
+                ['name' => __('ui.common.home'), 'url' => $homeUrl],
+                ['name' => __('ui.common.products'), 'url' => $listingUrl],
                 ['name' => $categoryTranslation?->name, 'url' => $categoryUrl],
                 ['name' => $translation->name, 'url' => $productUrl],
             ], $productUrl, $categoryTranslation?->name),
+            'homeUrl' => $homeUrl,
+            'listingUrl' => $listingUrl,
+            'mainImage' => $product->displayImageUrl($translation),
+            'blocks' => $blocks,
+            'specifications' => $specifications,
+            'applications' => $applications,
+            'substrates' => $substrates,
+            'features' => $features,
+            'consultingInputs' => $consultingInputs,
+            'storageNotes' => $storageNotes,
+            'productFaq' => $productFaq,
+            'categoryName' => $categoryName,
+            'quickFacts' => $quickFacts,
+            'relatedCount' => $relatedCount,
+            'locale' => $locale,
         ]);
     }
 

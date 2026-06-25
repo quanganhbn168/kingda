@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -363,12 +364,14 @@
     margin: 0 4px !important;
     background: rgba(215, 25, 32, .25);
     opacity: 1;
+    transition: all .3s cubic-bezier(.4, 0, .2, 1);
 }
 
 [data-product-swiper-pagination] .swiper-pagination-bullet-active {
-    width: 24px;
-    border-radius: 999px;
-    background: var(--kd-red, #d71920);
+    width: 24px !important;
+    border-radius: 999px !important;
+    background: var(--kd-red, #d71920) !important;
+    box-shadow: 0 2px 6px rgba(215, 25, 32, .3) !important;
 }
 
 .kd-product-swiper {
@@ -388,7 +391,6 @@
 [data-product-swiper-wrap] {
     min-width: 0;
     max-width: 100%;
-    overflow: hidden;
 }
 
 [data-product-swiper-pagination] {
@@ -1707,3 +1709,6 @@
         }
     }
 }
+
+.prose table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+

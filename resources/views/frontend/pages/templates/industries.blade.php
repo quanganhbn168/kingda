@@ -19,10 +19,10 @@
             <div class="mx-auto grid max-w-7xl gap-4 px-4 md:grid-cols-4">
                 @foreach($stats as $stat)
                     <div class="rounded border border-slate-200 p-5">
-                        <div class="text-3xl font-extrabold text-primary">{{ $stat['value'] ?? '' }}</div>
-                        <div class="mt-2 font-bold text-slate-900">{{ $stat['label'] ?? '' }}</div>
-                        @if(! empty($stat['description']))
-                            <p class="mt-2 text-sm leading-6 text-slate-600">{{ $stat['description'] }}</p>
+                        <div class="text-3xl font-extrabold text-primary">{{ $stat->value ?? '' }}</div>
+                        <div class="mt-2 font-bold text-slate-900">{{ $stat->label ?? '' }}</div>
+                        @if(filled($stat->description))
+                            <p class="mt-2 text-sm leading-6 text-slate-600">{{ $stat->description }}</p>
                         @endif
                     </div>
                 @endforeach

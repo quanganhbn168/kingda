@@ -291,7 +291,7 @@ class PageController extends Controller
             ])
             ->ordered()
             ->get()
-            ->map(fn (Category $category): array => [
+            ->map(fn (Category $category): mixed => LocalizedContent::toFluent([
                 'title' => $category->translation?->name,
                 'description' => $category->translation?->description,
                 'url' => $category->translation?->public_url,
@@ -303,8 +303,8 @@ class PageController extends Controller
                     'image' => $product->displayImageUrl(),
                     'sku' => $product->sku,
                 ])->values()->all(),
-            ])
-            ->filter(fn (array $category): bool => filled($category['title']) && ! empty($category['products']))
+            ]))
+            ->filter(fn ($category): bool => filled($category->title) && $category->products->isNotEmpty())
             ->values();
     }
 
@@ -321,14 +321,14 @@ class PageController extends Controller
             ->ordered()
             ->limit((int) data_get(app(HomeSettings::class)->industries, 'limit', 8))
             ->get()
-            ->map(fn (Industry $industry): array => [
+            ->map(fn (Industry $industry): mixed => LocalizedContent::toFluent([
                 'title' => $industry->translation?->title,
                 'description' => $industry->translation?->description,
                 'url' => $industry->url ?: $industry->translation?->public_url,
                 'icon' => $industry->icon,
                 'image' => $industry->getFirstMediaUrl('thumbnail') ?: $industry->getFirstMediaUrl('hero'),
-            ])
-            ->filter(fn (array $industry): bool => filled($industry['title']))
+            ]))
+            ->filter(fn ($industry): bool => filled($industry->title))
             ->values();
     }
 
@@ -339,20 +339,20 @@ class PageController extends Controller
             ->with('media')
             ->ordered()
             ->get()
-            ->map(fn (Certificate $certificate): array => [
+            ->map(fn (Certificate $certificate): mixed => LocalizedContent::toFluent([
                 'name' => $certificate->name,
                 'description' => $certificate->description,
                 'image' => $certificate->getFirstMediaUrl('image'),
                 'pdf' => $certificate->getFirstMediaUrl('pdf'),
-            ])
+            ]))
             ->values();
     }
 
-    private function homeSettings(string $locale): array
+    private function homeSettings(string $locale): mixed
     {
         $settings = app(HomeSettings::class);
 
-        return [
+        return LocalizedContent::toFluent([
             'stats' => LocalizedContent::items($settings->stats, $locale),
             'intro' => [
                 ...LocalizedContent::block($settings->intro, $locale),
@@ -365,8 +365,8 @@ class PageController extends Controller
             'products' => LocalizedContent::block($settings->products, $locale) + ['limit' => $settings->products['limit'] ?? 8],
             'capabilities' => [
                 ...LocalizedContent::block($settings->capabilities, $locale),
-                'items' => collect(LocalizedContent::items($settings->capabilities['items'] ?? [], $locale))
-                    ->map(fn (array $item): array => [
+                'items' => LocalizedContent::items($settings->capabilities['items'] ?? [], $locale)
+                    ->map(fn ($item) => [
                         ...$item,
                         'image' => LocalizedContent::mediaUrl($item['image'] ?? null),
                     ])
@@ -377,7 +377,7 @@ class PageController extends Controller
                 'certificates' => collect($settings->certifications['certificates'] ?? [])
                     ->map(function (mixed $certificate): mixed {
                         if (! is_array($certificate)) {
-                            return $certificate;
+                            return ['name' => $certificate];
                         }
 
                         return [
@@ -386,6 +386,7 @@ class PageController extends Controller
                             'pdf' => LocalizedContent::mediaUrl($certificate['pdf'] ?? null),
                         ];
                     })
+                    ->map(fn ($cert) => LocalizedContent::toFluent($cert))
                     ->concat($this->certificates())
                     ->all(),
                 'items' => LocalizedContent::items($settings->certifications['items'] ?? [], $locale),
@@ -409,14 +410,14 @@ class PageController extends Controller
                 'button_url' => $settings->cta['button_url'] ?? null,
                 'background_image' => LocalizedContent::mediaUrl($settings->cta['background_image'] ?? null),
             ],
-        ];
+        ]);
     }
 
-    private function aboutSettings(string $locale): array
+    private function aboutSettings(string $locale): mixed
     {
         $settings = app(AboutSettings::class);
 
-        return [
+        return LocalizedContent::toFluent([
             'hero' => [
                 ...LocalizedContent::block($settings->hero, $locale),
                 'image' => LocalizedContent::mediaUrl($settings->hero['image'] ?? null),
@@ -446,7 +447,7 @@ class PageController extends Controller
                 ...LocalizedContent::block($settings->capabilities, $locale),
                 'items' => collect($settings->capabilities['items'] ?? [])
                     ->map(fn (array $item): array => [
-                        ...LocalizedContent::items([$item], $locale)[0],
+                        ...LocalizedContent::items([$item], $locale)->first(),
                         'image' => LocalizedContent::mediaUrl($item['image'] ?? null),
                     ])
                     ->all(),
@@ -466,7 +467,7 @@ class PageController extends Controller
                 ...LocalizedContent::block($settings->contact, $locale),
                 'button_url' => $settings->contact['button_url'] ?? null,
             ],
-        ];
+        ]);
     }
 
     private function homePosts(string $locale)
