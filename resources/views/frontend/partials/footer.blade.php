@@ -41,14 +41,23 @@
                     ?: data_get($contactSettings->default_address ?? [], 'vi')
                     ?: 'Tầng 1, số 27 Trần Quang Khải, Phường Võ Cường, Tỉnh Bắc Ninh, Việt Nam';
             @endphp
-            <div class="mt-4 space-y-2 text-sm text-slate-300">
-                <p>{{ $footerAddress }}</p>
-                @if(!empty($contactSettings->hotlines[0]['phone']) || !empty($contactSettings->phones[0]['phone']))
-                    <p>{{ $contactSettings->hotlines[0]['phone'] ?? $contactSettings->phones[0]['phone'] }}</p>
-                @else
-                    <p>0222 368 6268</p>
-                @endif
-                <p>{{ ($contactSettings->emails[0]['email'] ?? null) ?: 'kingdah@gmail.com' }}</p>
+            <div class="mt-4 space-y-3 text-sm text-slate-300">
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-location-dot mt-1 text-primary"></i>
+                    <span>{{ $footerAddress }}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-phone text-primary"></i>
+                    @if(!empty($contactSettings->hotlines[0]['phone']) || !empty($contactSettings->phones[0]['phone']))
+                        <span>{{ $contactSettings->hotlines[0]['phone'] ?? $contactSettings->phones[0]['phone'] }}</span>
+                    @else
+                        <span>0222 368 6268</span>
+                    @endif
+                </div>
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-envelope text-primary"></i>
+                    <span>{{ ($contactSettings->emails[0]['email'] ?? null) ?: 'kingdah@gmail.com' }}</span>
+                </div>
             </div>
         </div>
 
@@ -69,10 +78,19 @@
         <div>
             <h3 class="mb-3 text-sm font-bold uppercase text-white">{{ __('ui.footer.newsletter') }}</h3>
             <p class="text-sm text-slate-300">{{ __('ui.footer.newsletter_description') }}</p>
-            <form class="mt-5 flex overflow-hidden rounded bg-white">
-                <input type="email" placeholder="{{ __('ui.footer.email_placeholder') }}" class="min-w-0 flex-1 px-4 py-3 text-sm text-slate-900 outline-none">
-                <button type="button" class="bg-primary px-4 text-white">→</button>
+            @if(session('newsletter_success'))
+                <div class="mt-5 rounded border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+                    {{ session('newsletter_success') }}
+                </div>
+            @endif
+            <form method="POST" action="{{ app()->getLocale() === 'vi' ? route('newsletter.subscribe') : route('localized.newsletter.subscribe', ['locale' => app()->getLocale()]) }}" class="mt-5 flex overflow-hidden rounded bg-white">
+                @csrf
+                <input type="email" name="email" required placeholder="{{ __('ui.footer.email_placeholder') }}" class="min-w-0 flex-1 px-4 py-3 text-sm text-slate-900 outline-none">
+                <button type="submit" class="bg-primary px-4 text-white">→</button>
             </form>
+            @error('email')
+                <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+            @enderror
         </div>
     </div>
     <div class="border-t border-white/10">

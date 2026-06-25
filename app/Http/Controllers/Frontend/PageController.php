@@ -61,6 +61,21 @@ class PageController extends Controller
         return back()->with('contact_success', __('ui.contact.success'));
     }
 
+    public function subscribeNewsletter(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email', 'max:150'],
+        ]);
+
+        ContactMessage::query()->create([
+            'email' => $data['email'],
+            'source' => 'newsletter',
+            'status' => ContactMessageStatus::New->value,
+        ]);
+
+        return back()->with('newsletter_success', __('ui.contact.success'));
+    }
+
     public function industries(Request $request): View
     {
         return $this->renderIndustries(app()->getLocale());
