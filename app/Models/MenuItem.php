@@ -70,7 +70,7 @@ class MenuItem extends Model
         return $this->children()
             ->where('locale', app()->getLocale())
             ->where('is_active', true)
-            ->with('activeChildrenRecursive');
+            ->with(['linkable.translations', 'activeChildrenRecursive']);
     }
 
     public function linkable(): MorphTo
@@ -89,7 +89,11 @@ class MenuItem extends Model
         }
 
         if (method_exists($this->linkable, 'translationFor')) {
-            $translation = $this->linkable->translationFor($this->locale)->first();
+            if ($this->linkable->relationLoaded('translations')) {
+                $translation = $this->linkable->translations->firstWhere('locale', $this->locale);
+            } else {
+                $translation = $this->linkable->translationFor($this->locale)->first();
+            }
 
             if ($translation && isset($translation->public_url)) {
                 return $this->relativeUrl($translation->public_url);

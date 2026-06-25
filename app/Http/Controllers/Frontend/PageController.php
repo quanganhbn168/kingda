@@ -270,30 +270,68 @@ class PageController extends Controller
             ->ordered()
             ->get();
 
-        return $rootCategories
-            ->map(function (Category $category) use ($locale) {
-                $categoryIds = $category->descendantsAndSelfIds();
+        if ($rootCategories->isEmpty()) {
+            return collect();
+        }
 
-                $products = \App\Models\Product::query()
-                    ->active()
-                    ->where('is_home', true)
-                    ->whereIn('category_id', $categoryIds)
-                    ->withPublishedTranslation($locale)
-                    ->with([
-                        'translation.media',
-                        'translations' => fn ($query) => $query->where('locale', 'vi')->with('media'),
-                    ])
-                    ->ordered()
-                    ->get();
-                    
-                $totalProductsCount = \App\Models\Product::query()
-                    ->active()
-                    ->whereIn('category_id', $categoryIds)
-                    ->withPublishedTranslation($locale)
-                    ->count();
+        $allCategories = Category::query()
+            ->product()
+            ->active()
+            ->get(['id', 'parent_id']);
+
+        $getDescendantIds = function ($categoryId) use (&$getDescendantIds, $allCategories) {
+            $children = $allCategories->where('parent_id', $categoryId);
+            $ids = [];
+            foreach ($children as $child) {
+                $ids[] = $child->id;
+                $ids = array_merge($ids, $getDescendantIds($child->id));
+            }
+            return $ids;
+        };
+
+        $rootCategoryTreeIds = [];
+        $allNeededCategoryIds = [];
+        foreach ($rootCategories as $category) {
+            $treeIds = array_merge([$category->id], $getDescendantIds($category->id));
+            $rootCategoryTreeIds[$category->id] = $treeIds;
+            $allNeededCategoryIds = array_merge($allNeededCategoryIds, $treeIds);
+        }
+        $allNeededCategoryIds = array_unique($allNeededCategoryIds);
+
+        $allProducts = \App\Models\Product::query()
+            ->active()
+            ->where('is_home', true)
+            ->whereIn('category_id', $allNeededCategoryIds)
+            ->withPublishedTranslation($locale)
+            ->with([
+                'translation.media',
+                'translation.product.category.translation' => fn ($query) => $query->where('locale', $locale),
+                'translations' => fn ($query) => $query->where('locale', 'vi')->with('media'),
+            ])
+            ->ordered()
+            ->get();
+
+        $productCounts = \App\Models\Product::query()
+            ->active()
+            ->whereIn('category_id', $allNeededCategoryIds)
+            ->withPublishedTranslation($locale)
+            ->selectRaw('category_id, count(*) as aggregate')
+            ->groupBy('category_id')
+            ->pluck('aggregate', 'category_id');
+
+        return $rootCategories
+            ->map(function (Category $category) use ($rootCategoryTreeIds, $allProducts, $productCounts) {
+                $treeIds = $rootCategoryTreeIds[$category->id];
+                
+                $products = $allProducts->filter(fn ($p) => in_array($p->category_id, $treeIds))->values();
+                
+                $totalCount = 0;
+                foreach ($treeIds as $id) {
+                    $totalCount += $productCounts->get($id, 0);
+                }
 
                 $category->setRelation('products', $products);
-                $category->setAttribute('total_products_count', $totalProductsCount);
+                $category->setAttribute('total_products_count', $totalCount);
                 return $category;
             })
             ->map(fn (Category $category): mixed => LocalizedContent::toFluent([
@@ -486,6 +524,7 @@ class PageController extends Controller
             ->with([
                 'translation' => fn ($query) => $query->where('locale', $locale),
                 'translation.media',
+                'translation.post.category.translation' => fn ($query) => $query->where('locale', $locale),
                 'category.translation' => fn ($query) => $query->where('locale', $locale),
             ])
             ->latest('created_at')

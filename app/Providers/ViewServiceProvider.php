@@ -80,9 +80,11 @@ class ViewServiceProvider extends ServiceProvider
                         ->where('locale', $locale)
                         ->where('is_active', true)
                         ->with([
+                            'linkable.translations',
                             'childrenRecursive' => fn ($query) => $query
                                 ->where('locale', $locale)
                                 ->where('is_active', true)
+                                ->with('linkable.translations')
                                 ->orderBy('sort_order'),
                         ])
                         ->orderBy('sort_order'),
@@ -112,7 +114,14 @@ class ViewServiceProvider extends ServiceProvider
                             ->whereNull('parent_id')
                             ->where('locale', $locale)
                             ->where('is_active', true)
-                            ->with('activeChildrenRecursive')
+                            ->with([
+                                'linkable.translations',
+                                'activeChildrenRecursive' => fn ($query) => $query
+                                    ->where('locale', $locale)
+                                    ->where('is_active', true)
+                                    ->with('linkable.translations')
+                                    ->orderBy('sort_order')
+                            ])
                             ->orderBy('sort_order'),
                     ])
                     ->first();
