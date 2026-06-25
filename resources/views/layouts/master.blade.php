@@ -66,17 +66,6 @@
         <link rel="alternate" hreflang="x-default" href="{{ $alternateUrls['vi'] }}">
     @else
         <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
-
-    @foreach($alternateUrls ?? [] as $locale => $url)
-        @if(! empty($url))
-            <link rel="alternate" hreflang="{{ $locale }}" href="{{ $url }}">
-        @endif
-    @endforeach
-
-    @if(! empty(($alternateUrls ?? [])['vi']))
-        <link rel="alternate" hreflang="x-default" href="{{ $alternateUrls['vi'] }}">
-    @else
-        <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
     @endif
 
     @if(! empty($settings->favicon))
