@@ -183,7 +183,7 @@ class SeoSchemaBuilder
             'logo' => $logo,
             'email' => collect($contact->emails ?? [])->first(),
             'telephone' => collect($contact->phones ?? $contact->hotlines ?? [])->first(),
-            'address' => $company->office_address ?: $company->registered_address ?: $contact->default_address,
+            'address' => $company->office_address ?: $company->registered_address ?: data_get($contact->default_address ?? [], app()->getLocale()) ?: data_get($contact->default_address ?? [], 'vi'),
             'sameAs' => collect($contact->social_links ?? [])->pluck('url')->filter()->values()->all() ?: null,
         ];
     }

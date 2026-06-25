@@ -94,7 +94,11 @@
                     <div class="mt-5 space-y-4 text-sm leading-6 text-slate-600">
                         <div class="flex gap-3">
                             <i class="fa-solid fa-location-dot mt-1 text-primary"></i>
-                            <span>{{ $contactSettings->default_address }}</span>
+                            @php
+                                $contactAddress = data_get($contactSettings->default_address ?? [], app()->getLocale())
+                                    ?: data_get($contactSettings->default_address ?? [], 'vi');
+                            @endphp
+                            <span>{{ $contactAddress }}</span>
                         </div>
                         <div class="flex gap-3">
                             <i class="fa-solid fa-envelope mt-1 text-primary"></i>
@@ -104,10 +108,14 @@
                             <i class="fa-solid fa-phone mt-1 text-primary"></i>
                             <span>{{ $contactSettings->phones[0]['phone'] ?? $contactSettings->hotlines[0]['phone'] ?? '' }}</span>
                         </div>
-                        @if($contactSettings->default_working_hours)
+                        @php
+                            $workingHours = data_get($contactSettings->default_working_hours ?? [], app()->getLocale())
+                                ?: data_get($contactSettings->default_working_hours ?? [], 'vi');
+                        @endphp
+                        @if($workingHours)
                             <div class="flex gap-3">
                                 <i class="fa-solid fa-clock mt-1 text-primary"></i>
-                                <span>{{ $contactSettings->default_working_hours }}</span>
+                                <span>{{ $workingHours }}</span>
                             </div>
                         @endif
                     </div>

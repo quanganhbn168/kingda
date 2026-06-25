@@ -3,8 +3,13 @@
         <div class="mx-auto flex h-9 max-w-7xl items-center justify-between px-4">
             <div class="flex items-center gap-6">
                 <span class="inline-flex items-center gap-2">
+                    @php
+                        $headerAddress = data_get($contactSettings->default_address ?? [], app()->getLocale())
+                            ?: data_get($contactSettings->default_address ?? [], 'vi')
+                            ?: 'Tầng 1, số 27 Trần Quang Khải, P. Vũ Cường, Tỉnh Bắc Ninh, Việt Nam';
+                    @endphp
                     <i class="fa-solid fa-location-dot text-primary-dark"></i>
-                    {{ $contactSettings->default_address ?: 'Tầng 1, số 27 Trần Quang Khải, P. Vũ Cường, Tỉnh Bắc Ninh, Việt Nam' }}
+                    {{ $headerAddress }}
                 </span>
                 <span class="inline-flex items-center gap-2">
                     <i class="fa-solid fa-envelope text-primary-dark"></i>
