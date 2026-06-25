@@ -383,7 +383,7 @@
                                                         </div>
 
                                                         <div class="mt-1 text-lg font-black text-slate-900">
-                                                            {{ $locale === 'vi' ? 'Xem tất cả ' . $allGroupProducts->count() . ' sản phẩm' : 'View all ' . $allGroupProducts->count() . ' products' }}
+                                                            {{ $locale === 'vi' ? 'Xem tất cả ' . $group->products_count . ' sản phẩm' : 'View all ' . $group->products_count . ' products' }}
                                                         </div>
                                                     </div>
 

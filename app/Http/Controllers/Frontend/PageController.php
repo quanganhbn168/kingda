@@ -285,8 +285,15 @@ class PageController extends Controller
                     ])
                     ->ordered()
                     ->get();
+                    
+                $totalProductsCount = \App\Models\Product::query()
+                    ->active()
+                    ->whereIn('category_id', $categoryIds)
+                    ->withPublishedTranslation($locale)
+                    ->count();
 
                 $category->setRelation('products', $products);
+                $category->setAttribute('total_products_count', $totalProductsCount);
                 return $category;
             })
             ->map(fn (Category $category): mixed => LocalizedContent::toFluent([
@@ -294,6 +301,7 @@ class PageController extends Controller
                 'description' => $category->translation?->description,
                 'url' => $category->translation?->public_url,
                 'image' => $category->displayImageUrl(),
+                'products_count' => $category->total_products_count,
                 'products' => $category->products->map(fn ($product): array => [
                     'title' => $product->translation?->name,
                     'description' => $product->translation?->description,
