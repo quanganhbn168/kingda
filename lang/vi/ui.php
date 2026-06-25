@@ -130,6 +130,9 @@ return [
         'rights' => 'All rights reserved.',
     ],
     'seo' => [
+        'home' => [
+            'description' => 'Kingda là nhà cung cấp hàng đầu các giải pháp vật liệu in ấn, sơn phủ và vật liệu công nghiệp chất lượng cao.'
+        ],
         'about' => [
             'description' => 'Kingda là doanh nghiệp cung cấp giải pháp vật liệu in ấn điện tử, sơn phủ và vật liệu chức năng cho sản xuất công nghiệp.'
         ],

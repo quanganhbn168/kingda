@@ -130,6 +130,9 @@ return [
         'rights' => 'All rights reserved.',
     ],
     'seo' => [
+        'home' => [
+            'description' => 'Kingda is a leading provider of high-quality printing materials, coatings, and industrial material solutions.'
+        ],
         'about' => [
             'description' => 'Kingda provides electronic printing materials, coating and functional material solutions for industrial manufacturing.'
         ],

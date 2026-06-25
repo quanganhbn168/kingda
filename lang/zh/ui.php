@@ -130,6 +130,9 @@ return [
         'rights' => 'All rights reserved.',
     ],
     'seo' => [
+        'home' => [
+            'description' => '金达是提供高质量印刷材料、涂料和工业材料解决方案的领先供应商。'
+        ],
         'about' => [
             'description' => '金达是一家为工业制造提供电子印刷材料、涂料和功能材料解决方案的企业。'
         ],
