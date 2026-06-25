@@ -67,7 +67,6 @@ class ProductCatalogService
     }
 
     public function detail(string $locale, string $categorySlug, string $productSlug): array
-    {
         $translation = ProductTranslation::query()
             ->published()
             ->locale($locale)
