@@ -35,23 +35,20 @@ class PostCategoryForm
 
                         Select::make('parent_id')
                             ->label('Danh mục cha')
-                            ->options(fn (Get $get, ?Category $record): array => filled($get('type'))
-                                ? Category::query()
-                                    ->where('type', $get('type'))
-                                    ->when($record?->exists, fn (Builder $query): Builder => $query->whereNotIn('id', [
-                                        $record->getKey(),
-                                        ...$record->descendantIds(),
-                                    ]))
-                                    ->with('translation')
-                                    ->ordered()
-                                    ->get()
-                                    ->mapWithKeys(fn (Category $category): array => [
-                                        $category->id => $category->translation?->name ?: 'Danh mục #' . $category->id,
-                                    ])
-                                    ->all()
-                                : [])
-                            ->visible(fn (Get $get): bool => filled($get('type')))
-                            ->helperText('Chỉ hiển thị danh mục cha cùng nhóm đã chọn.')
+                            ->options(fn (?Category $record): array => Category::query()
+                                ->post()
+                                ->when($record?->exists, fn (Builder $query): Builder => $query->whereNotIn('id', [
+                                    $record->getKey(),
+                                    ...$record->descendantIds(),
+                                ]))
+                                ->with('translation')
+                                ->ordered()
+                                ->get()
+                                ->mapWithKeys(fn (Category $category): array => [
+                                    $category->id => $category->translation?->name ?: 'Danh mục #'.$category->id,
+                                ])
+                                ->all())
+                            ->helperText('Chỉ hiển thị danh mục bài viết.')
                             ->searchable()
                             ->preload(),
 
@@ -80,7 +77,7 @@ class PostCategoryForm
     {
         return Tab::make($locale->label())
             ->schema([
-                Repeater::make('translations_' . $locale->value)
+                Repeater::make('translations_'.$locale->value)
                     ->label($locale->label())
                     ->relationship(
                         'translations',
@@ -206,5 +203,3 @@ class PostCategoryForm
         ];
     }
 }
-
-
