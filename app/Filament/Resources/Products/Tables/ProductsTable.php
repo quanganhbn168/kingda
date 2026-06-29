@@ -2,16 +2,14 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
-use App\Enums\CategoryType;
-use App\Models\Category;
 use App\Models\Product;
+use App\Services\Admin\ProductCategoryOptions;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -26,7 +24,7 @@ class ProductsTable
             ->columns([
                 TextColumn::make('translation.name')
                     ->label('Tên sản phẩm')
-                    ->description(fn (Product $record): string => $record->sku ? 'SKU: ' . $record->sku : 'SKU: N/A')
+                    ->description(fn (Product $record): string => $record->sku ? 'SKU: '.$record->sku : 'SKU: N/A')
                     ->searchable(query: fn ($query, string $search) => $query->whereHas('translations', fn ($q) => $q->where('name', 'like', "%{$search}%"))->orWhere('sku', 'like', "%{$search}%"))
                     ->sortable(),
                 TextColumn::make('category.translation.name')
@@ -53,18 +51,7 @@ class ProductsTable
             ->filters([
                 SelectFilter::make('category_id')
                     ->label('Danh mục')
-                    ->options(fn (): array => Category::query()
-                        ->where('type', CategoryType::Product->value)
-                        ->with('translations')
-                        ->ordered()
-                        ->get()
-                        ->mapWithKeys(function (Category $category): array {
-                            $translation = $category->translations->firstWhere('locale', 'vi')
-                                ?: $category->translations->first();
-
-                            return [$category->id => $translation?->name ?: 'Danh mục #'.$category->id];
-                        })
-                        ->all())
+                    ->options(fn (): array => app(ProductCategoryOptions::class)->leaves())
                     ->searchable()
                     ->preload(),
             ])
@@ -81,17 +68,7 @@ class ProductsTable
                         ->form([
                             Select::make('category_id')
                                 ->label('Chọn danh mục mới')
-                                ->options(fn (): array => Category::query()
-                                    ->where('type', CategoryType::Product->value)
-                                    ->with('translations')
-                                    ->ordered()
-                                    ->get()
-                                    ->mapWithKeys(function (Category $category): array {
-                                        $translation = $category->translations->firstWhere('locale', 'vi')
-                                            ?: $category->translations->first();
-                                        return [$category->id => $translation?->name ?: 'Danh mục #'.$category->id];
-                                    })
-                                    ->all())
+                                ->options(fn (): array => app(ProductCategoryOptions::class)->leaves())
                                 ->searchable()
                                 ->preload()
                                 ->required(),
@@ -132,10 +109,16 @@ class ProductsTable
                         ])
                         ->action(function (Collection $records, array $data): void {
                             $updates = [];
-                            if ($data['is_home'] !== '') $updates['is_home'] = (bool) $data['is_home'];
-                            if ($data['is_featured'] !== '') $updates['is_featured'] = (bool) $data['is_featured'];
-                            if ($data['is_active'] !== '') $updates['is_active'] = (bool) $data['is_active'];
-                            
+                            if ($data['is_home'] !== '') {
+                                $updates['is_home'] = (bool) $data['is_home'];
+                            }
+                            if ($data['is_featured'] !== '') {
+                                $updates['is_featured'] = (bool) $data['is_featured'];
+                            }
+                            if ($data['is_active'] !== '') {
+                                $updates['is_active'] = (bool) $data['is_active'];
+                            }
+
                             if (count($updates) > 0) {
                                 foreach ($records as $record) {
                                     $record->update($updates);

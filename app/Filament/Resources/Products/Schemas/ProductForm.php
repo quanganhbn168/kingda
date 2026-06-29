@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
-use App\Enums\CategoryType;
 use App\Enums\Locale;
-use App\Models\Category;
+use App\Services\Admin\ProductCategoryOptions;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -52,15 +51,8 @@ class ProductForm
                 ->schema([
                     Select::make('category_id')
                         ->label('Danh mục')
-                        ->options(fn (): array => Category::query()
-                            ->where('type', CategoryType::Product->value)
-                            ->with('translation')
-                            ->ordered()
-                            ->get()
-                            ->mapWithKeys(fn (Category $category): array => [
-                                $category->id => $category->translation?->name ?: 'Danh mục #' . $category->id,
-                            ])
-                            ->all())
+                        ->options(fn (): array => app(ProductCategoryOptions::class)->leaves())
+                        ->helperText('Chỉ hiển thị danh mục cấp lá, không còn danh mục con.')
                         ->searchable()
                         ->preload(),
                     TextInput::make('sku')
@@ -88,7 +80,7 @@ class ProductForm
     {
         return Tab::make($locale->label())
             ->schema([
-                Repeater::make('translations_' . $locale->value)
+                Repeater::make('translations_'.$locale->value)
                     ->label($locale->label())
                     ->relationship(
                         'translations',

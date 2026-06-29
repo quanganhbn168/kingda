@@ -21,6 +21,7 @@ class CategoryTranslation extends Model implements HasMedia
         'slug',
         'name',
         'description',
+        'content',
         'seo_title',
         'seo_description',
         'og_title',

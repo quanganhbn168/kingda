@@ -55,7 +55,7 @@ class QuickCatalogJsonImporter
 
             foreach ($parentSlugs as $categoryId => $parentSlug) {
                 if (! $parentSlug) {
-                    Category::query()->whereKey($categoryId)->update(['parent_id' => null]);
+                    Category::query()->findOrFail($categoryId)->update(['parent_id' => null]);
 
                     continue;
                 }
@@ -72,7 +72,7 @@ class QuickCatalogJsonImporter
                     $this->fail("Danh mục '{$parentSlug}' không thể tự làm danh mục cha.");
                 }
 
-                Category::query()->whereKey($categoryId)->update(['parent_id' => $parent->id]);
+                $category->update(['parent_id' => $parent->id]);
             }
 
             return $result;
@@ -115,6 +115,10 @@ class QuickCatalogJsonImporter
 
             if (! $category) {
                 $this->fail("{$path}: không tìm thấy danh mục sản phẩm có slug '{$categorySlug}'.");
+            }
+
+            if (! $category->canReceiveProducts(fresh: true)) {
+                $this->fail("{$path}: ".$category->productAssignmentBlockReason(fresh: true));
             }
 
             $translations = [];
@@ -297,6 +301,7 @@ class QuickCatalogJsonImporter
             'slug' => $data['slug'],
             'name' => $data['name'],
             'description' => $this->nullableString($data['description'] ?? null),
+            'content' => $this->nullableString($data['content'] ?? null),
             'seo_title' => $this->nullableString($data['seo_title'] ?? null),
             'seo_description' => $this->nullableString($data['seo_description'] ?? null),
             'og_title' => $this->nullableString($data['og_title'] ?? null),

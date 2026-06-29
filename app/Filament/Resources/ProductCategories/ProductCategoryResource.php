@@ -48,7 +48,9 @@ class ProductCategoryResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->product();
+        return parent::getEloquentQuery()
+            ->product()
+            ->withCount(['products', 'children']);
     }
 
     public static function getRelations(): array

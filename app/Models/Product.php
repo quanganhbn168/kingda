@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Validation\ValidationException;
 
 class Product extends Model
 {
@@ -38,6 +39,26 @@ class Product extends Model
         'is_home' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $product): void {
+            if (! $product->isDirty('category_id') || ! $product->category_id) {
+                return;
+            }
+
+            $category = Category::query()->find($product->category_id);
+            $reason = $category
+                ? $category->productAssignmentBlockReason(fresh: true)
+                : 'Danh mục sản phẩm không hợp lệ.';
+
+            if ($reason) {
+                throw ValidationException::withMessages([
+                    'category_id' => $reason,
+                ]);
+            }
+        });
+    }
 
     public function category(): BelongsTo
     {

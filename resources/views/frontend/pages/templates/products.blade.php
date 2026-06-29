@@ -97,6 +97,12 @@
                         <p class="mt-2 text-slate-600">{{ __('ui.empty.products_description') }}</p>
                     </div>
                 @endif
+
+                @if (filled($activeCategory?->translation?->content))
+                    <article class="kd-article-content mt-10 rounded bg-white px-6 py-8 shadow ring-1 ring-slate-200 md:px-9">
+                        {!! $activeCategory->translation->content !!}
+                    </article>
+                @endif
             </div>
         </div>
     </section>

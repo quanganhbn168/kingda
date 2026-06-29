@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Validation\ValidationException;
 
 class Category extends Model
 {
@@ -18,7 +19,9 @@ class Category extends Model
     use HasSortOrder;
 
     public const TYPE_PRODUCT = 'product';
+
     public const TYPE_SERVICE = 'service';
+
     public const TYPE_POST = 'post';
 
     protected $fillable = [
@@ -32,6 +35,38 @@ class Category extends Model
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $category): void {
+            if (
+                $category->type !== CategoryType::Product->value
+                || ! $category->isDirty('parent_id')
+                || ! $category->parent_id
+            ) {
+                return;
+            }
+
+            $parent = self::query()->find($category->parent_id);
+            $reason = $parent
+                ? $parent->productChildCreationBlockReason(fresh: true)
+                : 'Danh mục cha không hợp lệ.';
+
+            if ($reason) {
+                throw ValidationException::withMessages([
+                    'parent_id' => $reason,
+                ]);
+            }
+        });
+
+        static::deleting(function (self $category): ?bool {
+            if ($category->type === CategoryType::Product->value) {
+                return $category->canDeleteProductCategory(fresh: true) ? null : false;
+            }
+
+            return $category->children()->exists() ? false : null;
+        });
+    }
 
     public function parent(): BelongsTo
     {
@@ -138,6 +173,80 @@ class Category extends Model
             $this->id,
             ...$this->descendantIds(),
         ];
+    }
+
+    public function canAcceptProductChildren(bool $fresh = false): bool
+    {
+        return $this->productChildCreationBlockReason($fresh) === null;
+    }
+
+    public function productChildCreationBlockReason(bool $fresh = false): ?string
+    {
+        if ($this->type !== CategoryType::Product->value) {
+            return 'Chỉ danh mục sản phẩm mới có thể làm danh mục cha.';
+        }
+
+        $hasProducts = (! $fresh && array_key_exists('products_count', $this->attributes))
+            ? ((int) $this->attributes['products_count'] > 0)
+            : $this->products()->exists();
+
+        return $hasProducts
+            ? 'Danh mục cha đang chứa sản phẩm. Hãy chuyển toàn bộ sản phẩm xuống một danh mục lá trước khi thêm danh mục con.'
+            : null;
+    }
+
+    public function canReceiveProducts(bool $fresh = false): bool
+    {
+        return $this->productAssignmentBlockReason($fresh) === null;
+    }
+
+    public function productAssignmentBlockReason(bool $fresh = false): ?string
+    {
+        if ($this->type !== CategoryType::Product->value) {
+            return 'Sản phẩm chỉ có thể thuộc một danh mục sản phẩm.';
+        }
+
+        $hasChildren = (! $fresh && array_key_exists('children_count', $this->attributes))
+            ? ((int) $this->attributes['children_count'] > 0)
+            : $this->children()->exists();
+
+        return $hasChildren
+            ? 'Sản phẩm chỉ có thể thuộc danh mục lá, không còn danh mục con.'
+            : null;
+    }
+
+    public function canDeleteProductCategory(bool $fresh = false): bool
+    {
+        return $this->productCategoryDeletionBlockReason($fresh) === null;
+    }
+
+    public function productCategoryDeletionBlockReason(bool $fresh = false): ?string
+    {
+        if ($this->type !== CategoryType::Product->value) {
+            return null;
+        }
+
+        $hasProducts = (! $fresh && array_key_exists('products_count', $this->attributes))
+            ? ((int) $this->attributes['products_count'] > 0)
+            : $this->products()->exists();
+
+        $hasChildren = (! $fresh && array_key_exists('children_count', $this->attributes))
+            ? ((int) $this->attributes['children_count'] > 0)
+            : $this->children()->exists();
+
+        if ($hasProducts && $hasChildren) {
+            return 'Danh mục đang chứa sản phẩm và danh mục con. Hãy chuyển sản phẩm, sau đó chuyển hoặc xóa hết danh mục con trước.';
+        }
+
+        if ($hasProducts) {
+            return 'Danh mục đang chứa sản phẩm. Hãy chuyển sản phẩm sang danh mục lá khác trước.';
+        }
+
+        if ($hasChildren) {
+            return 'Danh mục đang có danh mục con. Hãy chuyển hoặc xóa hết danh mục con trước.';
+        }
+
+        return null;
     }
 
     public function displayImageUrl(?CategoryTranslation $translation = null, array $collections = ['thumbnail', 'hero'], string $fallbackLocale = 'vi'): ?string

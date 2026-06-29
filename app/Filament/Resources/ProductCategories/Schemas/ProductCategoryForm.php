@@ -5,8 +5,10 @@ namespace App\Filament\Resources\ProductCategories\Schemas;
 use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Models\Category;
+use App\Services\Admin\ProductCategoryOptions;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
@@ -29,26 +31,15 @@ class ProductCategoryForm
             ->components([
                 Section::make('Thông tin danh mục')
                     ->columns(2)
+                    ->columnSpanFull()
                     ->schema([
                         Hidden::make('type')
                             ->default(CategoryType::Product->value),
 
                         Select::make('parent_id')
                             ->label('Danh mục cha')
-                            ->options(fn (?Category $record): array => Category::query()
-                                ->product()
-                                ->when($record?->exists, fn (Builder $query): Builder => $query->whereNotIn('id', [
-                                    $record->getKey(),
-                                    ...$record->descendantIds(),
-                                ]))
-                                ->with('translation')
-                                ->ordered()
-                                ->get()
-                                ->mapWithKeys(fn (Category $category): array => [
-                                    $category->id => $category->translation?->name ?: 'Danh mục #'.$category->id,
-                                ])
-                                ->all())
-                            ->helperText('Chỉ hiển thị danh mục sản phẩm.')
+                            ->options(fn (?Category $record): array => app(ProductCategoryOptions::class)->tree($record))
+                            ->helperText('Chỉ chọn được danh mục cha không chứa sản phẩm; cây không giới hạn số tầng.')
                             ->searchable()
                             ->preload(),
 
@@ -145,7 +136,12 @@ class ProductCategoryForm
                         ->default(true),
 
                     Textarea::make('description')
-                        ->label('Mô tả')
+                        ->label('Mô tả ngắn')
+                        ->rows(3)
+                        ->columnSpanFull(),
+
+                    RichEditor::make('content')
+                        ->label('Nội dung chi tiết')
                         ->columnSpanFull(),
                 ]),
 
