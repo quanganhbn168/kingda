@@ -18,6 +18,8 @@ class ContactSettings extends Settings
 
     public array $social_links;
 
+    public ?string $zalo_qr_image;
+
     public ?string $wechat_qr_image;
 
     public ?array $default_address;

@@ -24,6 +24,15 @@
         $zaloUrl = 'https://zalo.me/' . trim($integrationSettings->zalo_oa_id);
     }
 
+    $zaloQrImage = filled($contactSettings->zalo_qr_image ?? null)
+        ? asset('storage/' . ltrim($contactSettings->zalo_qr_image, '/'))
+        : null;
+    $zaloImageUrl = $zaloQrImage ?: ($zaloUrl && (
+        str_starts_with($zaloUrl, 'data:image/')
+        || preg_match('/\.(?:png|jpe?g|gif|webp|svg)(?:\?.*)?$/i', $zaloUrl)
+    ) ? $zaloUrl : null);
+    $zaloIsImage = filled($zaloImageUrl);
+
     $wechat = $findSocialLink(['wechat', 'weixin', '微信']);
     $wechatUrl = $wechat['url'] ?? null;
     $wechatQrImage = filled($contactSettings->wechat_qr_image ?? null)
@@ -44,20 +53,49 @@
         class="kd-floating-contacts"
         :class="{ 'kd-floating-contacts--has-top': showBackToTop }"
         aria-label="{{ app()->getLocale() === 'vi' ? 'Liên hệ nhanh' : 'Quick contact' }}"
-        x-data="{ wechatOpen: false, showBackToTop: false }"
+        x-data="{ zaloOpen: false, wechatOpen: false, showBackToTop: false }"
         x-init="showBackToTop = window.scrollY > 360"
         @scroll.window.throttle.150ms="showBackToTop = window.scrollY > 360"
-        @keydown.escape.window="wechatOpen = false"
+        @keydown.escape.window="zaloOpen = false; wechatOpen = false"
     >
-        <a
-            href="{{ $zaloHref }}"
-            @if($zaloUrl) target="_blank" rel="noopener noreferrer" @endif
-            class="kd-floating-contact kd-floating-contact--zalo"
-            aria-label="Zalo"
-        >
-            <span class="kd-floating-contact__icon kd-floating-contact__icon--zalo">Zalo</span>
-            <span class="kd-floating-contact__label">Zalo</span>
-        </a>
+        <div class="kd-floating-contact-wrap" @click.outside="zaloOpen = false">
+            @if($zaloIsImage)
+                <button
+                    type="button"
+                    class="kd-floating-contact kd-floating-contact--zalo"
+                    aria-label="Zalo"
+                    :aria-expanded="zaloOpen"
+                    @click="zaloOpen = !zaloOpen; wechatOpen = false"
+                >
+                    <span class="kd-floating-contact__icon kd-floating-contact__icon--zalo">Zalo</span>
+                    <span class="kd-floating-contact__label">Zalo</span>
+                </button>
+
+                <div
+                    class="kd-floating-qr"
+                    x-cloak
+                    x-show="zaloOpen"
+                    x-transition.opacity.duration.180ms
+                >
+                    <button type="button" class="kd-floating-qr__close" aria-label="Close" @click="zaloOpen = false">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <img src="{{ $zaloImageUrl }}" alt="Zalo QR code">
+                    <strong>Zalo</strong>
+                    <span>{{ app()->getLocale() === 'vi' ? 'Quét mã để kết nối' : 'Scan to connect' }}</span>
+                </div>
+            @else
+                <a
+                    href="{{ $zaloHref }}"
+                    @if($zaloUrl) target="_blank" rel="noopener noreferrer" @endif
+                    class="kd-floating-contact kd-floating-contact--zalo"
+                    aria-label="Zalo"
+                >
+                    <span class="kd-floating-contact__icon kd-floating-contact__icon--zalo">Zalo</span>
+                    <span class="kd-floating-contact__label">Zalo</span>
+                </a>
+            @endif
+        </div>
 
         <a
             href="{{ $phoneHref }}"
@@ -68,27 +106,26 @@
             <span class="kd-floating-contact__label">{{ app()->getLocale() === 'vi' ? 'Điện thoại' : 'Phone' }}</span>
         </a>
 
-        <div class="kd-floating-contact-wrap">
+        <div class="kd-floating-contact-wrap" @click.outside="wechatOpen = false">
             @if($wechatIsImage)
                     <button
                         type="button"
                         class="kd-floating-contact kd-floating-contact--wechat"
                         aria-label="WeChat"
                         :aria-expanded="wechatOpen"
-                        @click="wechatOpen = !wechatOpen"
-                        @click.outside="wechatOpen = false"
+                        @click="wechatOpen = !wechatOpen; zaloOpen = false"
                     >
                         <span class="kd-floating-contact__icon"><i class="fa-brands fa-weixin"></i></span>
                         <span class="kd-floating-contact__label">WeChat</span>
                     </button>
 
                     <div
-                        class="kd-floating-wechat"
+                        class="kd-floating-qr"
                         x-cloak
                         x-show="wechatOpen"
                         x-transition.opacity.duration.180ms
                     >
-                        <button type="button" class="kd-floating-wechat__close" aria-label="Close" @click="wechatOpen = false">
+                        <button type="button" class="kd-floating-qr__close" aria-label="Close" @click="wechatOpen = false">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                         <img src="{{ $wechatImageUrl }}" alt="WeChat QR code">

@@ -57,6 +57,14 @@ class ManageContactSettings extends SettingsPage
                             ])
                             ->columns(2)
                             ->default([]),
+                        FileUpload::make('zalo_qr_image')
+                            ->label('Mã QR Zalo')
+                            ->helperText('Ảnh QR hiển thị khi khách bấm nút Zalo nổi.')
+                            ->image()
+                            ->disk('public')
+                            ->visibility('public')
+                            ->directory('settings/contact')
+                            ->imagePreviewHeight('180'),
                         FileUpload::make('wechat_qr_image')
                             ->label('Mã QR WeChat')
                             ->helperText('Ảnh QR hiển thị khi khách bấm nút WeChat nổi.')
@@ -64,8 +72,7 @@ class ManageContactSettings extends SettingsPage
                             ->disk('public')
                             ->visibility('public')
                             ->directory('settings/contact')
-                            ->imagePreviewHeight('180')
-                            ->columnSpanFull(),
+                            ->imagePreviewHeight('180'),
                     ]),
                 Section::make('Thông tin mặc định')
                     ->columns(2)

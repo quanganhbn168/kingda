@@ -128,7 +128,7 @@
     line-height: 1.2;
 }
 
-.kd-floating-wechat {
+.kd-floating-qr {
     position: absolute;
     top: 50%;
     right: calc(100% + 14px);
@@ -143,7 +143,7 @@
     transform: translateY(-50%);
 }
 
-.kd-floating-wechat::after {
+.kd-floating-qr::after {
     position: absolute;
     top: 50%;
     left: 100%;
@@ -153,30 +153,30 @@
     transform: translateY(-50%);
 }
 
-.kd-floating-wechat img {
+.kd-floating-qr img {
     width: 100%;
     aspect-ratio: 1;
     border-radius: 10px;
     object-fit: contain;
 }
 
-.kd-floating-wechat strong,
-.kd-floating-wechat span {
+.kd-floating-qr strong,
+.kd-floating-qr span {
     display: block;
 }
 
-.kd-floating-wechat strong {
+.kd-floating-qr strong {
     margin-top: 10px;
     font-size: 15px;
 }
 
-.kd-floating-wechat span {
+.kd-floating-qr span {
     margin-top: 3px;
     color: #64748b;
     font-size: 12px;
 }
 
-.kd-floating-wechat__close {
+.kd-floating-qr__close {
     position: absolute;
     top: 7px;
     right: 7px;
@@ -238,7 +238,7 @@
         white-space: nowrap;
     }
 
-    .kd-floating-wechat {
+    .kd-floating-qr {
         top: auto;
         right: 0;
         bottom: calc(100% + 12px);
@@ -246,7 +246,7 @@
         transform: none;
     }
 
-    .kd-floating-wechat::after {
+    .kd-floating-qr::after {
         top: 100%;
         right: 18px;
         left: auto;
