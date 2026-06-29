@@ -39,18 +39,16 @@ class ProductCategoryForm
                         Select::make('parent_id')
                             ->label('Danh mục cha')
                             ->options(fn (?Category $record): array => app(ProductCategoryOptions::class)->tree($record))
+                            ->placeholder('Danh mục gốc (không có danh mục cha)')
+                            ->default(null)
+                            ->dehydrateStateUsing(fn (mixed $state): ?int => filled($state) && ((int) $state > 0) ? (int) $state : null)
                             ->helperText('Chỉ chọn được danh mục cha không chứa sản phẩm; cây không giới hạn số tầng.')
                             ->searchable()
                             ->preload(),
 
-                        TextInput::make('sort_order')
-                            ->label('Thứ tự')
-                            ->required()
-                            ->numeric()
-                            ->default(0),
-
                         Toggle::make('is_active')
                             ->label('Kích hoạt')
+                            ->default(true)
                             ->required(),
                     ]),
 
@@ -171,23 +169,29 @@ class ProductCategoryForm
                 ]),
 
             Section::make('SEO')
+                ->description('Canonical URL được tạo tự động theo URL công khai của danh mục.')
                 ->columns(2)
                 ->schema([
                     TextInput::make('seo_title')
                         ->label('SEO title')
                         ->maxLength(255),
 
-                    TextInput::make('canonical_url')
-                        ->label('Canonical URL')
-                        ->maxLength(255),
-
                     Textarea::make('seo_description')
                         ->label('SEO description'),
 
-                    TextInput::make('meta_robots')
-                        ->label('Meta robots')
+                    Select::make('meta_robots')
+                        ->label('Hiển thị trên công cụ tìm kiếm')
+                        ->options([
+                            'index,follow' => 'Cho phép lập chỉ mục và theo liên kết (Khuyến nghị)',
+                            'noindex,follow' => 'Không lập chỉ mục, vẫn theo liên kết',
+                            'index,nofollow' => 'Lập chỉ mục, không theo liên kết',
+                            'noindex,nofollow' => 'Không lập chỉ mục và không theo liên kết',
+                        ])
                         ->default('index,follow')
-                        ->maxLength(255),
+                        ->required()
+                        ->native(false)
+                        ->selectablePlaceholder(false)
+                        ->helperText('Thông thường nên giữ lựa chọn khuyến nghị.'),
 
                     TextInput::make('og_title')
                         ->label('OG title')

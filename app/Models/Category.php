@@ -40,6 +40,13 @@ class Category extends Model
     {
         static::saving(function (self $category): void {
             if (
+                $category->type === CategoryType::Product->value
+                && (! $category->parent_id || (int) $category->parent_id === 0)
+            ) {
+                $category->parent_id = null;
+            }
+
+            if (
                 $category->type !== CategoryType::Product->value
                 || ! $category->isDirty('parent_id')
                 || ! $category->parent_id
@@ -56,6 +63,34 @@ class Category extends Model
                 throw ValidationException::withMessages([
                     'parent_id' => $reason,
                 ]);
+            }
+        });
+
+        static::creating(function (self $category): void {
+            if (
+                $category->type === CategoryType::Product->value
+                && $category->is_active === null
+            ) {
+                $category->is_active = true;
+            }
+
+            if (
+                $category->type === CategoryType::Product->value
+                && (int) ($category->sort_order ?? 0) <= 0
+            ) {
+                $category->sort_order = self::nextProductCategorySortOrder($category->parent_id);
+            }
+        });
+
+        static::updating(function (self $category): void {
+            if (
+                $category->type === CategoryType::Product->value
+                && $category->isDirty('parent_id')
+            ) {
+                $category->sort_order = self::nextProductCategorySortOrder(
+                    $category->parent_id,
+                    $category->getKey(),
+                );
             }
         });
 
@@ -276,5 +311,16 @@ class Category extends Model
         }
 
         return null;
+    }
+
+    private static function nextProductCategorySortOrder(?int $parentId, int|string|null $ignoreId = null): int
+    {
+        $maximum = (int) self::query()
+            ->product()
+            ->where('parent_id', $parentId)
+            ->when($ignoreId, fn (Builder $query): Builder => $query->whereKeyNot($ignoreId))
+            ->max('sort_order');
+
+        return max(0, $maximum) + 10;
     }
 }

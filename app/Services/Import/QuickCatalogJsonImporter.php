@@ -306,7 +306,6 @@ class QuickCatalogJsonImporter
             'seo_description' => $this->nullableString($data['seo_description'] ?? null),
             'og_title' => $this->nullableString($data['og_title'] ?? null),
             'og_description' => $this->nullableString($data['og_description'] ?? null),
-            'canonical_url' => $this->nullableString($data['canonical_url'] ?? null),
             'meta_robots' => $this->nullableString($data['meta_robots'] ?? null) ?: 'index,follow',
             'is_published' => (bool) ($data['is_published'] ?? true),
         ];

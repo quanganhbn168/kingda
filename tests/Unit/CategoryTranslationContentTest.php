@@ -28,5 +28,7 @@ class CategoryTranslationContentTest extends TestCase
         ]);
 
         $this->assertSame('<p>Nội dung chi tiết</p>', $data['content']);
+        $this->assertArrayNotHasKey('canonical_url', $data);
+        $this->assertSame('index,follow', $data['meta_robots']);
     }
 }

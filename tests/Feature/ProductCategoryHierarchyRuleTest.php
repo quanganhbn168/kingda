@@ -40,6 +40,24 @@ class ProductCategoryHierarchyRuleTest extends TestCase
         $this->assertSame($leaf->id, $product->category_id);
     }
 
+    public function test_new_product_categories_normalize_the_root_and_order_themselves(): void
+    {
+        $first = $this->category();
+        $second = $this->category();
+        $rootFromZero = Category::query()->create([
+            'parent_id' => 0,
+            'type' => Category::TYPE_PRODUCT,
+        ]);
+        $child = $this->category($first);
+
+        $this->assertNull($rootFromZero->parent_id);
+        $this->assertSame(10, $first->sort_order);
+        $this->assertSame(20, $second->sort_order);
+        $this->assertSame(30, $rootFromZero->sort_order);
+        $this->assertSame(10, $child->sort_order);
+        $this->assertTrue($rootFromZero->is_active);
+    }
+
     private function category(?Category $parent = null): Category
     {
         return Category::query()->create([
