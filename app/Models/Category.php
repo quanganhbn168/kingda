@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CategoryType;
+use App\Enums\Locale;
 use App\Models\Concerns\HasActiveStatus;
 use App\Models\Concerns\HasSortOrder;
 use Illuminate\Database\Eloquent\Builder;
@@ -127,6 +128,21 @@ class Category extends Model
     {
         return $this->hasOne(CategoryTranslation::class)
             ->where('locale', app()->getLocale());
+    }
+
+    public function translationVi(): HasOne
+    {
+        return $this->translationFor(Locale::Vietnamese->value);
+    }
+
+    public function translationEn(): HasOne
+    {
+        return $this->translationFor(Locale::English->value);
+    }
+
+    public function translationZh(): HasOne
+    {
+        return $this->translationFor(Locale::Chinese->value);
     }
 
     public function publishedTranslation(): HasOne

@@ -7,20 +7,19 @@ use App\Enums\Locale;
 use App\Models\Category;
 use App\Services\Admin\ProductCategoryOptions;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class ProductCategoryForm
@@ -66,22 +65,8 @@ class ProductCategoryForm
     {
         return Tab::make($locale->label())
             ->schema([
-                Repeater::make('translations_'.$locale->value)
-                    ->label($locale->label())
-                    ->relationship(
-                        'translations',
-                        modifyQueryUsing: fn (Builder $query): Builder => $query->where('locale', $locale->value),
-                    )
-                    ->schema(self::translationFields($locale))
-                    ->defaultItems(1)
-                    ->maxItems(1)
-                    ->minItems(1)
-                    ->addable(false)
-                    ->deletable(false)
-                    ->reorderable(false)
-                    ->cloneable(false)
-                    ->itemHeaders(false)
-                    ->hiddenLabel()
+                Group::make(self::translationFields($locale))
+                    ->relationship(self::translationRelationship($locale))
                     ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
                         ...$data,
                         'locale' => $locale->value,
@@ -201,5 +186,14 @@ class ProductCategoryForm
                         ->label('OG description'),
                 ]),
         ];
+    }
+
+    private static function translationRelationship(Locale $locale): string
+    {
+        return match ($locale) {
+            Locale::Vietnamese => 'translationVi',
+            Locale::English => 'translationEn',
+            Locale::Chinese => 'translationZh',
+        };
     }
 }
