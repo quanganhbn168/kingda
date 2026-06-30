@@ -64,6 +64,21 @@ class Post extends Model
             ->where('locale', $locale ?: app()->getLocale());
     }
 
+    public function getSlugUrlAttribute(): string
+    {
+        $translation = $this->relationLoaded('translations')
+            ? $this->translations->firstWhere('locale', 'vi')
+            : $this->translationFor('vi')->first();
+
+        if (! $translation) {
+            return '';
+        }
+
+        $translation->setRelation('post', $this);
+
+        return $translation->public_url;
+    }
+
     public function menuItems(): MorphMany
     {
         return $this->morphMany(MenuItem::class, 'linkable');

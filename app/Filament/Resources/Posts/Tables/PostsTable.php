@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Posts\Tables;
 
 use App\Enums\CategoryType;
 use App\Models\Category;
+use App\Models\Post;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -22,7 +23,14 @@ class PostsTable
                 TextColumn::make('translation.title')
                     ->label('Tiêu đề')
                     ->searchable(query: fn ($query, string $search) => $query->whereHas('translations', fn ($query) => $query->where('title', 'like', "%{$search}%")))
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(55)
+                    ->weight('medium')
+                    ->copyable()
+                    ->copyableState(fn (Post $record): string => $record->slug_url)
+                    ->copyMessage('Đã sao chép liên kết bài viết')
+                    ->copyMessageDuration(2000)
+                    ->tooltip('Bấm để sao chép liên kết bài viết'),
                 TextColumn::make('category.translation.name')
                     ->label('Danh mục')
                     ->searchable(),
@@ -66,6 +74,7 @@ class PostsTable
                     ->searchable()
                     ->preload(),
             ])
+            ->modifyQueryUsing(fn ($query) => $query->with(['translations', 'category.translations']))
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
