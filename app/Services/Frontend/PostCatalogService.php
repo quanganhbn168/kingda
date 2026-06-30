@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\PostTranslation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class PostCatalogService
@@ -57,13 +58,17 @@ class PostCatalogService
             ->withPublishedTranslation($locale)
             ->when($activeCategory, fn (Builder $query) => $query->whereIn('category_id', $activeCategory->descendantsAndSelfIds()))
             ->with([
-                'translation' => fn ($query) => $query->where('locale', $locale),
-                'translation.media',
+                'translations' => fn ($query) => $query
+                    ->whereIn('locale', array_values(array_unique([$locale, 'vi'])))
+                    ->with('media'),
                 'category.translation' => fn ($query) => $query->where('locale', $locale),
+                'category.translations' => fn ($query) => $query->where('locale', 'vi'),
             ])
             ->latest('created_at')
             ->paginate(9)
             ->withQueryString();
+
+        $this->applyResolvedTranslations($posts->getCollection(), $locale);
 
         return [
             'categories' => $categories,
@@ -114,13 +119,17 @@ class PostCatalogService
             ->whereKeyNot($post->id)
             ->when($post->category_id, fn (Builder $query) => $query->where('category_id', $post->category_id))
             ->with([
-                'translation' => fn ($query) => $query->where('locale', $locale),
-                'translation.media',
+                'translations' => fn ($query) => $query
+                    ->whereIn('locale', array_values(array_unique([$locale, 'vi'])))
+                    ->with('media'),
                 'category.translation' => fn ($query) => $query->where('locale', $locale),
+                'category.translations' => fn ($query) => $query->where('locale', 'vi'),
             ])
             ->latest('created_at')
             ->limit(3)
             ->get();
+
+        $this->applyResolvedTranslations($relatedPosts, $locale);
 
         if ($relatedPosts->count() >= 3) {
             return $relatedPosts;
@@ -132,15 +141,26 @@ class PostCatalogService
             ->whereKeyNot($post->id)
             ->whereNotIn('id', $relatedPosts->pluck('id'))
             ->with([
-                'translation' => fn ($query) => $query->where('locale', $locale),
-                'translation.media',
+                'translations' => fn ($query) => $query
+                    ->whereIn('locale', array_values(array_unique([$locale, 'vi'])))
+                    ->with('media'),
                 'category.translation' => fn ($query) => $query->where('locale', $locale),
+                'category.translations' => fn ($query) => $query->where('locale', 'vi'),
             ])
             ->latest('created_at')
             ->limit(3 - $relatedPosts->count())
             ->get();
 
+        $this->applyResolvedTranslations($extraPosts, $locale);
+
         return $relatedPosts->concat($extraPosts)->values();
+    }
+
+    private function applyResolvedTranslations(Collection $posts, string $locale): void
+    {
+        $posts->each(function (Post $post) use ($locale): void {
+            $post->useResolvedTranslation($locale, publishedOnly: true);
+        });
     }
 
     private function tableOfContents(?string $content): array

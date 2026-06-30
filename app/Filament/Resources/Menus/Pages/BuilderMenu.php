@@ -724,7 +724,7 @@ class BuilderMenu extends Page
                 ->ordered()
                 ->get()
                 ->mapWithKeys(fn (Post $post): array => [
-                    $post->id => $post->translationFor('vi')->first()?->title ?: 'Bài viết #' . $post->id,
+                    $post->id => $post->resolveTranslation('vi')?->title ?: 'Bài viết #' . $post->id,
                 ])
                 ->all(),
             default => [],
@@ -769,7 +769,7 @@ class BuilderMenu extends Page
             $linkable instanceof SitePage => $linkable->translation($locale)?->title,
             $linkable instanceof Category => $linkable->translationFor($locale)->first()?->name,
             $linkable instanceof Product => $linkable->translationFor($locale)->first()?->name,
-            $linkable instanceof Post => $linkable->translationFor($locale)->first()?->title,
+            $linkable instanceof Post => $linkable->resolveTranslation($locale)?->title,
             default => null,
         };
     }

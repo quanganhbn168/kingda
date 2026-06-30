@@ -290,7 +290,13 @@ class ViewServiceProvider extends ServiceProvider
             ?->translations
             ->first(fn (PostTranslation $item): bool => $item->locale === $targetLocale && $item->is_published);
 
-        return $targetTranslation ? $targetTranslation->public_url : $fallbackUrl;
+        $fallbackTranslation = $translation?->post
+            ?->translations
+            ->first(fn (PostTranslation $item): bool => $item->locale === 'vi' && $item->is_published);
+
+        return $targetTranslation?->public_url
+            ?? $fallbackTranslation?->public_url
+            ?? $fallbackUrl;
     }
 
     private function localizedIndustryDetailUrl(Request $request, string $currentLocale, string $targetLocale): string

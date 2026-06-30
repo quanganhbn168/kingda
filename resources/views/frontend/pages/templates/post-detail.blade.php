@@ -139,13 +139,8 @@
                     @foreach($relatedPosts as $related)
                         @php
                             $relatedTranslation = $related->translation;
-                            $relatedCategoryTranslation = $related->category?->translation;
                             $relatedImage = $relatedTranslation?->getFirstMediaUrl('thumbnail') ?: $relatedTranslation?->getFirstMediaUrl('hero');
-                            $relatedUrl = $relatedTranslation?->slug
-                                ? url($locale === 'vi'
-                                    ? '/tin-tuc/' . collect([$relatedCategoryTranslation?->slug, $relatedTranslation->slug])->filter()->join('/')
-                                    : '/' . $locale . '/news/' . collect([$relatedCategoryTranslation?->slug, $relatedTranslation->slug])->filter()->join('/'))
-                                : '#';
+                            $relatedUrl = $relatedTranslation?->public_url ?: '#';
                         @endphp
                         <a href="{{ $relatedUrl }}" class="group block overflow-hidden rounded bg-white shadow ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                             @if($relatedImage)

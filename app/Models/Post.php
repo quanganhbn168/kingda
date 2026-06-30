@@ -64,11 +64,48 @@ class Post extends Model
             ->where('locale', $locale ?: app()->getLocale());
     }
 
+    public function resolveTranslation(
+        ?string $locale = null,
+        string $fallbackLocale = 'vi',
+        bool $publishedOnly = false,
+    ): ?PostTranslation {
+        $locale ??= app()->getLocale();
+        $locales = array_values(array_unique([$locale, $fallbackLocale]));
+        $translations = $this->relationLoaded('translations')
+            ? $this->translations
+            : $this->translations()->whereIn('locale', $locales)->get();
+
+        $translation = $translations->first(
+            fn (PostTranslation $item): bool => $item->locale === $locale && $item->isUsable(),
+        );
+
+        if ($translation) {
+            return (! $publishedOnly || $translation->is_published) ? $translation : null;
+        }
+
+        if ($locale === $fallbackLocale) {
+            return null;
+        }
+
+        $fallback = $translations->first(
+            fn (PostTranslation $item): bool => $item->locale === $fallbackLocale && $item->isUsable(),
+        );
+
+        return ($fallback && (! $publishedOnly || $fallback->is_published)) ? $fallback : null;
+    }
+
+    public function useResolvedTranslation(?string $locale = null, bool $publishedOnly = false): static
+    {
+        $translation = $this->resolveTranslation($locale, publishedOnly: $publishedOnly);
+        $translation?->setRelation('post', $this);
+        $this->setRelation('translation', $translation);
+
+        return $this;
+    }
+
     public function getSlugUrlAttribute(): string
     {
-        $translation = $this->relationLoaded('translations')
-            ? $this->translations->firstWhere('locale', 'vi')
-            : $this->translationFor('vi')->first();
+        $translation = $this->resolveTranslation('vi');
 
         if (! $translation) {
             return '';
@@ -97,8 +134,29 @@ class Post extends Model
     {
         $locale = $locale ?: app()->getLocale();
 
-        return $query->whereHas('translations', function (Builder $query) use ($locale) {
-            $query->where('locale', $locale)->where('is_published', true);
+        if ($locale === 'vi') {
+            return $query->whereHas('translations', fn (Builder $query): Builder => $query
+                ->locale('vi')
+                ->published()
+                ->usable());
+        }
+
+        return $query->where(function (Builder $query) use ($locale): void {
+            $query
+                ->whereHas('translations', fn (Builder $translationQuery): Builder => $translationQuery
+                    ->locale($locale)
+                    ->published()
+                    ->usable())
+                ->orWhere(function (Builder $fallbackQuery) use ($locale): void {
+                    $fallbackQuery
+                        ->whereDoesntHave('translations', fn (Builder $translationQuery): Builder => $translationQuery
+                            ->locale($locale)
+                            ->usable())
+                        ->whereHas('translations', fn (Builder $translationQuery): Builder => $translationQuery
+                            ->locale('vi')
+                            ->published()
+                            ->usable());
+                });
         });
     }
 }

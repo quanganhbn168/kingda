@@ -73,20 +73,26 @@ class PostForm
 
     private static function translationTab(Locale $locale): Tab
     {
+        $isVietnamese = $locale === Locale::Vietnamese;
+
         return Tab::make($locale->label())
             ->schema([
                 \Filament\Forms\Components\Repeater::make('translations_' . $locale->value)
                     ->label($locale->label())
+                    ->helperText($isVietnamese
+                        ? 'Bản Tiếng Việt là bắt buộc.'
+                        : 'Không bắt buộc. Nếu không có, website sẽ sử dụng bản Tiếng Việt.')
                     ->relationship(
                         'translations',
                         modifyQueryUsing: fn (Builder $query): Builder => $query->where('locale', $locale->value),
                     )
                     ->schema(self::translationFields($locale))
-                    ->defaultItems(1)
+                    ->defaultItems($isVietnamese ? 1 : 0)
                     ->maxItems(1)
-                    ->minItems(1)
-                    ->addable(false)
-                    ->deletable(false)
+                    ->minItems($isVietnamese ? 1 : 0)
+                    ->addable(! $isVietnamese)
+                    ->addActionLabel('Thêm bản dịch ' . $locale->label())
+                    ->deletable(! $isVietnamese)
                     ->reorderable(false)
                     ->cloneable(false)
                     ->itemHeaders(false)

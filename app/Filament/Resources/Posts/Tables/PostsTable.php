@@ -22,6 +22,7 @@ class PostsTable
             ->columns([
                 TextColumn::make('translation.title')
                     ->label('Tiêu đề')
+                    ->getStateUsing(fn (Post $record): ?string => $record->resolveTranslation()?->title)
                     ->searchable(query: fn ($query, string $search) => $query->whereHas('translations', fn ($query) => $query->where('title', 'like', "%{$search}%")))
                     ->sortable()
                     ->limit(55)

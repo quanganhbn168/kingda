@@ -537,14 +537,18 @@ class PageController extends Controller
             ->active()
             ->withPublishedTranslation($locale)
             ->with([
-                'translation' => fn ($query) => $query->where('locale', $locale),
-                'translation.media',
-                'translation.post.category.translation' => fn ($query) => $query->where('locale', $locale),
+                'translations' => fn ($query) => $query
+                    ->whereIn('locale', array_values(array_unique([$locale, 'vi'])))
+                    ->with('media'),
                 'category.translation' => fn ($query) => $query->where('locale', $locale),
+                'category.translations' => fn ($query) => $query->where('locale', 'vi'),
             ])
             ->latest('created_at')
             ->limit($limit > 0 ? $limit : 3)
-            ->get();
+            ->get()
+            ->each(function (Post $post) use ($locale): void {
+                $post->useResolvedTranslation($locale, publishedOnly: true);
+            });
     }
 
     private function buildAlternateUrls(Page $page): array

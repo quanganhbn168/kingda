@@ -86,7 +86,10 @@ class PostTranslation extends Model implements HasMedia
         $category = $post?->category;
         $categoryTranslation = null;
 
-        if ($category?->relationLoaded('translation')) {
+        if (
+            $category?->relationLoaded('translation')
+            && ($category->translation?->locale === $locale)
+        ) {
             $categoryTranslation = $category->translation;
         } elseif ($category?->relationLoaded('translations')) {
             $categoryTranslation = $category->translations->firstWhere('locale', $locale);
@@ -125,6 +128,20 @@ class PostTranslation extends Model implements HasMedia
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
+    }
+
+    public function scopeUsable(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('title')
+            ->where('title', '!=', '')
+            ->whereNotNull('slug')
+            ->where('slug', '!=', '');
+    }
+
+    public function isUsable(): bool
+    {
+        return filled($this->title) && filled($this->slug);
     }
 
     public function scopeSlug(Builder $query, string $slug): Builder

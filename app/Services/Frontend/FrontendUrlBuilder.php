@@ -67,10 +67,15 @@ class FrontendUrlBuilder
             return null;
         }
 
+        $locale = $translation->locale;
+
         $category = $post->relationLoaded('category') ? $post->category : null;
         $categoryTranslation = null;
 
-        if ($category?->relationLoaded('translation')) {
+        if (
+            $category?->relationLoaded('translation')
+            && ($category->translation?->locale === $locale)
+        ) {
             $categoryTranslation = $category->translation;
         } elseif ($category?->relationLoaded('translations')) {
             $categoryTranslation = $category->translations->firstWhere('locale', $locale);
