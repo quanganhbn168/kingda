@@ -73,7 +73,7 @@
                         @endif
                     </div>
 
-                    <h1 class="mt-5 text-3xl font-black leading-tight text-slate-950 md:text-5xl">
+                    <h1 class="mt-5 text-2xl font-black leading-tight text-slate-950 md:text-4xl">
                         {{ $translation->name }}
                     </h1>
 

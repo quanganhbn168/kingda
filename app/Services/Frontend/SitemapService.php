@@ -19,7 +19,7 @@ use Spatie\Sitemap\Tags\Url;
 
 class SitemapService
 {
-    public const CACHE_KEY = 'frontend:sitemap:xml:v1';
+    public const CACHE_KEY = 'frontend:sitemap:xml:v2';
 
     /** @var array<string, true> */
     private array $seenUrls = [];
@@ -33,7 +33,16 @@ class SitemapService
         return Cache::remember(
             self::CACHE_KEY,
             now()->addHour(),
-            fn (): string => $this->build()->render(),
+            function (): string {
+                $xml = $this->build()->render();
+
+                return preg_replace_callback(
+                    '/^<\?xml[^>]+\?>/',
+                    fn (array $matches): string => $matches[0]."\n".'<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
+                    $xml,
+                    1,
+                ) ?: $xml;
+            },
         );
     }
 

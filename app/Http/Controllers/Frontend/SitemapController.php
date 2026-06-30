@@ -16,6 +16,18 @@ class SitemapController extends Controller
         ]);
     }
 
+    public function stylesheet(): Response
+    {
+        $stylesheet = file_get_contents(resource_path('xml/sitemap.xsl'));
+
+        abort_if($stylesheet === false, 404);
+
+        return response($stylesheet, 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
     public function robots(): Response
     {
         $content = implode("\n", [

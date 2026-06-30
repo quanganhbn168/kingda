@@ -7,6 +7,7 @@ use App\Http\Controllers\Frontend\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
+Route::get('/sitemap.xsl', [SitemapController::class, 'stylesheet'])->name('sitemap.stylesheet');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 
 Route::middleware('set-locale')->group(function (): void {

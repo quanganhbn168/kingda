@@ -31,4 +31,14 @@ class SitemapEndpointTest extends TestCase
             ->assertSee('User-agent: *')
             ->assertSee('Sitemap: '.route('sitemap'));
     }
+
+    public function test_sitemap_stylesheet_is_returned_as_xml(): void
+    {
+        $this->get('/sitemap.xsl')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
+            ->assertHeader('Cache-Control', 'max-age=86400, public')
+            ->assertSee('<xsl:stylesheet', escape: false)
+            ->assertSee('sitemap:urlset', escape: false);
+    }
 }
