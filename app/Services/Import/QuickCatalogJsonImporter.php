@@ -277,8 +277,11 @@ class QuickCatalogJsonImporter
             }
 
             $data['name'] = trim((string) $data['name']);
+            $slugFallback = $locale === Locale::Chinese && isset($translations[Locale::English->value]['slug'])
+                ? $translations[Locale::English->value]['slug']
+                : $fallbackSlug;
             $data['slug'] = $this->requiredSlug(
-                $data['slug'] ?? $fallbackSlug,
+                $data['slug'] ?? $slugFallback,
                 "{$path}: translations.{$locale->value}.slug không hợp lệ."
             );
             $translations[$locale->value] = $data;

@@ -56,15 +56,17 @@
                             @php($productImage = $product->displayImageUrl())
                             <a href="{{ $product->translation?->public_url }}"
                                 class="group block overflow-hidden rounded bg-white shadow ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
-                                @if ($productImage)
-                                    <img src="{{ $productImage }}" alt="{{ $product->translation?->name }}"
-                                        class="h-52 w-full object-cover transition duration-500 group-hover:scale-105">
-                                @else
-                                    <div
-                                        class="flex h-52 items-center justify-center bg-gradient-to-br from-white via-red-50 to-slate-200 text-5xl text-primary">
-                                        <i class="fa-solid fa-box-open"></i>
-                                    </div>
-                                @endif
+                                <div class="relative aspect-square w-full overflow-hidden bg-slate-50">
+                                    @if ($productImage)
+                                        <img src="{{ $productImage }}" alt="{{ $product->translation?->name }}"
+                                            class="absolute inset-0 h-full w-full object-contain transition duration-500 group-hover:scale-105">
+                                    @else
+                                        <div
+                                            class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white via-red-50 to-slate-200 text-5xl text-primary">
+                                            <i class="fa-solid fa-box-open"></i>
+                                        </div>
+                                    @endif
+                                </div>
                                 <div class="p-5">
                                     <div class="flex items-center justify-between gap-3">
                                         <span

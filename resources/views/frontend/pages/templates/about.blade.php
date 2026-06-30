@@ -14,8 +14,8 @@
         $intellectualProperty = $aboutSettings->intellectual_property ?? new \Illuminate\Support\Fluent();
         $customers = $aboutSettings->customers ?? new \Illuminate\Support\Fluent();
         $contact = $aboutSettings->contact ?? new \Illuminate\Support\Fluent();
-        $heroImage = $hero->image ?: asset('images/about/kingda-hero-rd.jpg');
-        $introImage = $intro->image ?: asset('images/about/kingda-office.jpg');
+        $heroImage = $hero->image ?: asset('images/about/kingda-office.jpg');
+        $introImage = $intro->image ?: asset('images/about/kingda-hero-rd.jpg');
         $introSmallImageOne = $intro->small_image_one ?: asset('images/about/kingda-lab.jpg');
         $introSmallImageTwo = $intro->small_image_two ?: asset('images/about/kingda-production.jpg');
         $localizedContactUrl = app()->getLocale() === 'vi'

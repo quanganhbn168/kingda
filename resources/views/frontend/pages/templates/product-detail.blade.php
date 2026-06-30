@@ -47,11 +47,11 @@
     <section class="bg-slate-50 pb-14 md:pb-20">
         <div class="mx-auto max-w-7xl px-4">
             <div class="grid gap-8 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6 lg:grid-cols-[46%_1fr] lg:p-8">
-                <div class="overflow-hidden rounded-2xl bg-slate-100">
+                <div class="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
                     @if($mainImage)
-                        <img src="{{ $mainImage }}" alt="{{ $translation->name }}" class="aspect-[1/1] w-full object-cover">
+                        <img src="{{ $mainImage }}" alt="{{ $translation->name }}" class="absolute inset-0 h-full w-full object-contain">
                     @else
-                        <div class="flex aspect-[4/3] w-full items-center justify-center bg-slate-100 text-slate-400">
+                        <div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-400">
                             <div class="text-center">
                                 <i class="fa-solid fa-image text-5xl"></i>
                                 <div class="mt-3 text-sm font-bold">{{ __('ui.product_detail.no_product_image') }}</div>
@@ -379,18 +379,20 @@
                     <div class="mt-6 grid gap-5 md:grid-cols-3">
                         @foreach($relatedProducts as $related)
                             <a href="{{ $related->formatted_url }}" class="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl">
-                                @if($related->formatted_image)
-                                    <img src="{{ $related->formatted_image }}" alt="{{ $related->translation?->name }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-105">
-                                @else
-                                    <div class="flex h-52 w-full items-center justify-center bg-slate-100 text-slate-400">
-                                        <div class="text-center">
-                                            <i class="fa-solid fa-image text-4xl"></i>
-                                            <div class="mt-3 text-xs font-extrabold uppercase">
-                                                {{ __('ui.common.no_image') }}
+                                <div class="relative aspect-square w-full overflow-hidden bg-slate-50">
+                                    @if($related->formatted_image)
+                                        <img src="{{ $related->formatted_image }}" alt="{{ $related->translation?->name }}" class="absolute inset-0 h-full w-full object-contain transition duration-500 group-hover:scale-105">
+                                    @else
+                                        <div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-400">
+                                            <div class="text-center">
+                                                <i class="fa-solid fa-image text-4xl"></i>
+                                                <div class="mt-3 text-xs font-extrabold uppercase">
+                                                    {{ __('ui.common.no_image') }}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @endif
+                                    @endif
+                                </div>
 
                                 <div class="p-5">
                                     <p class="text-xs font-extrabold uppercase tracking-wide text-primary">

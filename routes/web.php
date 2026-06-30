@@ -3,7 +3,11 @@
 use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\PostController;
 use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\SitemapController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 
 Route::middleware('set-locale')->group(function (): void {
     Route::get('/', [PageController::class, 'home'])->name('home');
@@ -19,7 +23,7 @@ Route::middleware('set-locale')->group(function (): void {
     Route::get('/linh-vuc/{slug}', [PageController::class, 'industryDetail'])->name('industries.show');
     Route::get('/lien-he', [PageController::class, 'contact'])->name('contact');
     Route::post('/lien-he', [PageController::class, 'storeContact'])->middleware('throttle:5,1')->name('contact.store');
-    
+
     Route::post('/nhan-tin', [PageController::class, 'subscribeNewsletter'])->middleware('throttle:5,1')->name('newsletter.subscribe');
 
     Route::get('/gioi-thieu', [PageController::class, 'about'])->name('about');

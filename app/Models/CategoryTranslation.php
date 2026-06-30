@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CategoryType;
+use App\Enums\Locale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,8 +51,17 @@ class CategoryTranslation extends Model implements HasMedia
                 return;
             }
 
+            $slugSource = $translation->name;
+
+            if ($translation->locale === Locale::Chinese->value && $translation->category_id) {
+                $slugSource = static::query()
+                    ->where('category_id', $translation->category_id)
+                    ->where('locale', Locale::English->value)
+                    ->value('slug') ?: $slugSource;
+            }
+
             $translation->slug = static::uniqueSlug(
-                Str::slug($translation->name),
+                Str::slug($slugSource),
                 $translation->locale,
                 $translation->getKey()
             );

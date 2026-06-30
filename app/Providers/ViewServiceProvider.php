@@ -12,7 +12,6 @@ use App\Models\Menu;
 use App\Models\PageTranslation;
 use App\Models\PostTranslation;
 use App\Models\ProductTranslation;
-use App\Services\Frontend\ProductCategoryService;
 use App\Settings\ContactSettings;
 use App\Settings\IntegrationSettings;
 use App\Settings\SeoSettings;
@@ -92,7 +91,6 @@ class ViewServiceProvider extends ServiceProvider
                 ->first();
 
             $headerMenuItems = $headerMenu?->items ?? collect();
-            app(ProductCategoryService::class)->replaceProductMenuChildren($headerMenuItems, $locale);
 
             $siteSettings = app(SiteSettings::class);
             $loadFooterMenu = function (?int $menuId, bool $fallbackToFooter = false) use ($locale): ?Menu {

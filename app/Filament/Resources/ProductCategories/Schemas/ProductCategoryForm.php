@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ProductCategories\Schemas;
 use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Models\Category;
+use App\Models\CategoryTranslation;
 use App\Services\Admin\ProductCategoryOptions;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
@@ -21,6 +22,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Unique;
 
 class ProductCategoryForm
 {
@@ -100,18 +102,39 @@ class ProductCategoryForm
                         ->label('Tên danh mục')
                         ->required()
                         ->live(onBlur: true)
-                        ->afterStateUpdated(function (?string $state, Get $get, Set $set): void {
-                            if (filled($get('slug')) || blank($state)) {
+                        ->afterStateUpdated(function (?string $state, Get $get, Set $set) use ($locale): void {
+                            if (blank($state) || filled($get('slug'))) {
                                 return;
                             }
 
-                            $set('slug', Str::slug($state));
+                            $source = $locale === Locale::Chinese
+                                ? ($get('../translationEn.slug') ?: $get('../translationEn.name') ?: $state)
+                                : $state;
+                            $slug = Str::slug($source);
+
+                            if (blank($slug)) {
+                                return;
+                            }
+
+                            $set('slug', $slug);
+
+                            if ($locale === Locale::English && blank($get('../translationZh.slug'))) {
+                                $set('../translationZh.slug', $slug);
+                            }
                         })
                         ->maxLength(255),
 
                     TextInput::make('slug')
                         ->label('Slug')
-                        ->placeholder('Tự sinh khi lưu nếu để trống')
+                        ->helperText($locale === Locale::Chinese
+                            ? 'Tự lấy từ slug tiếng Anh; có thể chỉnh lại trước khi lưu.'
+                            : 'Tự hiện sau khi rời ô tên; có thể chỉnh lại trước khi lưu.')
+                        ->unique(
+                            table: CategoryTranslation::class,
+                            column: 'slug',
+                            ignoreRecord: true,
+                            modifyRuleUsing: fn (Unique $rule): Unique => $rule->where('locale', $locale->value),
+                        )
                         ->maxLength(255),
 
                     Toggle::make('is_published')

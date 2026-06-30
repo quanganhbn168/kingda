@@ -305,11 +305,11 @@
                                                                     <a href="{{ $product->url ?? ($group->url ?? $productIndexUrl) }}"
                                                                         class="group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
 
-                                                                        <div class="relative aspect-[4/3] w-full overflow-hidden bg-slate-50">
+                                                                        <div class="relative aspect-square w-full overflow-hidden bg-slate-50">
                                                                             @if (filled($product->image))
                                                                                 <img src="{{ $product->image }}"
                                                                                     alt="{{ $product->title ?? '' }}"
-                                                                                    class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                                                                                    class="absolute inset-0 h-full w-full object-contain transition duration-500 group-hover:scale-105">
                                                                             @else
                                                                                 <div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-300">
                                                                                     <i class="fa-solid fa-image text-4xl"></i>

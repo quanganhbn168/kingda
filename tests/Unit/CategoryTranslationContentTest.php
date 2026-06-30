@@ -31,4 +31,18 @@ class CategoryTranslationContentTest extends TestCase
         $this->assertArrayNotHasKey('canonical_url', $data);
         $this->assertSame('index,follow', $data['meta_robots']);
     }
+
+    public function test_import_uses_the_english_slug_for_chinese_when_omitted(): void
+    {
+        $method = new ReflectionMethod(QuickCatalogJsonImporter::class, 'translations');
+        $translations = $method->invoke(new QuickCatalogJsonImporter, [
+            'translations' => [
+                'vi' => ['name' => 'Mực in', 'slug' => 'muc-in'],
+                'en' => ['name' => 'Printing Ink', 'slug' => 'printing-ink'],
+                'zh' => ['name' => '印刷油墨'],
+            ],
+        ], 'muc-in', 'Danh mục #1');
+
+        $this->assertSame('printing-ink', $translations['zh']['slug']);
+    }
 }
