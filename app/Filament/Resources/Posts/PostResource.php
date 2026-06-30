@@ -7,7 +7,6 @@ use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Filament\Resources\Posts\Pages\ViewPost;
 use App\Filament\Resources\Posts\Schemas\PostForm;
-use App\Filament\Resources\Posts\Schemas\PostInfolist;
 use App\Filament\Resources\Posts\Tables\PostsTable;
 use App\Models\Post;
 use BackedEnum;
@@ -34,11 +33,6 @@ class PostResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return PostForm::configure($schema);
-    }
-
-    public static function infolist(Schema $schema): Schema
-    {
-        return PostInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table

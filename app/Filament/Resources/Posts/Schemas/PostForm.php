@@ -142,6 +142,7 @@ class PostForm
                         ->columnSpanFull(),
                     RichEditor::make('content')
                         ->label('Nội dung')
+                        ->floatingToolbars(null)
                         ->columnSpanFull(),
                     Toggle::make('is_published')
                         ->label('Xuất bản')
