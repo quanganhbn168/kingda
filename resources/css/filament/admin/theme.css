@@ -12,3 +12,13 @@
 .menu-builder-page textarea {
     resize: vertical;
 }
+.fi-fo-rich-editor {
+    position: relative;
+}
+
+.fi-fo-rich-editor .tiptap,
+.fi-fo-rich-editor .tiptap-editor {
+    max-height: 520px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
