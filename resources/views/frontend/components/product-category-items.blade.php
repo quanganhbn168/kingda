@@ -1,5 +1,6 @@
 @foreach ($categories as $category)
     @php($isActive = $activeCategory?->id === $category->id)
+    @php($shouldExpand = $isActive || in_array($category->id, $activeCategoryAncestorIds ?? [], true))
 
     <div class="{{ ($level ?? 0) > 0 ? 'ml-4 border-l border-slate-200 pl-3' : '' }}">
         <a href="{{ $category->translation?->public_url }}"
@@ -7,15 +8,14 @@
             <span class="min-w-0 flex-1">
                 <span class="block font-extrabold leading-5">{{ $category->translation?->name }}</span>
             </span>
-            <span
-                class="rounded-full px-2 py-1 text-xs font-extrabold {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-primary' }}">{{ $category->products_count }}</span>
         </a>
 
-        @if ($category->children->isNotEmpty())
+        @if (($level ?? 0) === 0 && $category->children->isNotEmpty() && $shouldExpand)
             <div class="mt-2 space-y-2">
                 @include('frontend.components.product-category-items', [
                     'categories' => $category->children,
                     'activeCategory' => $activeCategory,
+                    'activeCategoryAncestorIds' => $activeCategoryAncestorIds ?? [],
                     'level' => ($level ?? 0) + 1,
                 ])
             </div>

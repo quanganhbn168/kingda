@@ -6,6 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
+import "swiper/css/thumbs";
 
 import "glightbox/dist/css/glightbox.min.css";
 
@@ -13,7 +14,7 @@ import Alpine from "alpinejs";
 import collapse from "@alpinejs/collapse";
 
 import Swiper from "swiper";
-import { Autoplay, EffectFade, Navigation, Pagination } from "swiper/modules";
+import { Autoplay, EffectFade, Navigation, Pagination, Thumbs } from "swiper/modules";
 
 import GLightbox from "glightbox";
 
@@ -136,6 +137,52 @@ GLightbox({
     touchNavigation: true,
     loop: false,
 });
+
+/**
+ * Gallery ảnh tại trang chi tiết sản phẩm
+ */
+function initProductGallerySwipers() {
+    document.querySelectorAll("[data-product-gallery-main]").forEach((mainSlider) => {
+        if (mainSlider.swiper) {
+            mainSlider.swiper.update();
+            return;
+        }
+
+        const gallery = mainSlider.closest("[data-product-gallery]");
+        const thumbsElement = gallery?.querySelector("[data-product-gallery-thumbs]");
+        const total = mainSlider.querySelectorAll(".swiper-slide").length;
+        const thumbsSwiper = thumbsElement
+            ? new Swiper(thumbsElement, {
+                  modules: [Thumbs],
+                  slidesPerView: 4,
+                  spaceBetween: 10,
+                  watchSlidesProgress: true,
+                  slideToClickedSlide: true,
+                  breakpoints: {
+                      640: {
+                          slidesPerView: 5,
+                      },
+                  },
+              })
+            : null;
+
+        new Swiper(mainSlider, {
+            modules: [Navigation, Thumbs],
+            slidesPerView: 1,
+            spaceBetween: 12,
+            speed: 420,
+            watchOverflow: true,
+            navigation:
+                total > 1
+                    ? {
+                          prevEl: gallery?.querySelector("[data-product-gallery-prev]"),
+                          nextEl: gallery?.querySelector("[data-product-gallery-next]"),
+                      }
+                    : false,
+            thumbs: thumbsSwiper ? { swiper: thumbsSwiper } : undefined,
+        });
+    });
+}
 
 /**
  * Drag scroll cho tab danh mục
@@ -368,3 +415,4 @@ if (document.readyState === "loading") {
 Alpine.start();
 
 refreshProductSwipers();
+initProductGallerySwipers();

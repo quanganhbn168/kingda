@@ -207,6 +207,16 @@ class ProductForm
                         ->disk('public')
                         ->visibility('public')
                         ->image(),
+                    SpatieMediaLibraryFileUpload::make('gallery')
+                        ->label('Ảnh chi tiết')
+                        ->helperText('Có thể tải nhiều ảnh và kéo thả để sắp xếp thứ tự hiển thị.')
+                        ->collection('gallery')
+                        ->disk('public')
+                        ->visibility('public')
+                        ->image()
+                        ->multiple()
+                        ->reorderable()
+                        ->columnSpanFull(),
                 ]),
             Section::make('SEO')
                 ->columns(2)

@@ -19,11 +19,6 @@ class ProductCategoryService
             ->with([
                 'translation' => fn ($query) => $query->where('locale', $locale),
             ])
-            ->withCount([
-                'products' => fn (Builder $query) => $query
-                    ->active()
-                    ->withPublishedTranslation($locale),
-            ])
             ->ordered()
             ->get();
     }

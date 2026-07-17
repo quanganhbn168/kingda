@@ -9,6 +9,7 @@ use App\Http\Requests\Frontend\StoreProductConsultationRequest;
 use App\Models\Category;
 use App\Models\ContactMessage;
 use App\Models\Product;
+use App\Models\ProductTranslation;
 use App\Services\Frontend\FrontendUrlBuilder;
 use App\Services\Frontend\ListingPageService;
 use App\Services\Frontend\ProductCatalogService;
@@ -137,7 +138,9 @@ class ProductController extends Controller
             ->values();
 
         $categoryName = $categoryTranslation?->name ?: __('ui.common.products');
-        
+        $mainImage = $product->displayImageUrl($translation);
+        $galleryImages = $this->galleryImages($product, $translation, $mainImage);
+
         $relatedCount = $data['relatedProducts']->count();
         $data['relatedProducts']->each(function ($related) use ($locale) {
             $related->formatted_url = $this->urls->product($related, $related->translation, $locale) ?: '#';
@@ -164,7 +167,8 @@ class ProductController extends Controller
             ], $productUrl, $categoryTranslation?->name),
             'homeUrl' => $homeUrl,
             'listingUrl' => $listingUrl,
-            'mainImage' => $product->displayImageUrl($translation),
+            'mainImage' => $mainImage,
+            'galleryImages' => $galleryImages,
             'blocks' => $blocks,
             'specifications' => $specifications,
             'applications' => $applications,
@@ -178,6 +182,29 @@ class ProductController extends Controller
             'relatedCount' => $relatedCount,
             'locale' => $locale,
         ]);
+    }
+
+    private function galleryImages(Product $product, ProductTranslation $translation, ?string $mainImage): array
+    {
+        $galleryTranslation = $translation;
+        if ($translation->getMedia('gallery')->isEmpty() && $translation->locale !== 'vi') {
+            $galleryTranslation = $product->translationFor('vi')->with('media')->first() ?: $translation;
+        }
+
+        return collect([
+            filled($mainImage) ? [
+                'url' => $mainImage,
+                'alt' => $translation->name,
+            ] : null,
+            ...$galleryTranslation->getMedia('gallery')->map(fn ($media): array => [
+                'url' => $media->getUrl(),
+                'alt' => $translation->name,
+            ])->all(),
+        ])
+            ->filter()
+            ->unique('url')
+            ->values()
+            ->all();
     }
 
     private function modelAlternateUrls(Product $product): array

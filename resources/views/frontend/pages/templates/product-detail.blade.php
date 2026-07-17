@@ -47,11 +47,44 @@
     <section class="bg-slate-50 pb-14 md:pb-20">
         <div class="mx-auto max-w-7xl px-4">
             <div class="grid gap-8 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:p-6 lg:grid-cols-[46%_1fr] lg:p-8">
-                <div class="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
-                    @if($mainImage)
-                        <img src="{{ $mainImage }}" alt="{{ $translation->name }}" class="absolute inset-0 h-full w-full object-contain">
+                <div class="relative" data-product-gallery>
+                    @if(count($galleryImages))
+                        <div class="swiper aspect-square overflow-hidden rounded-2xl bg-slate-100" data-product-gallery-main>
+                            <div class="swiper-wrapper">
+                                @foreach($galleryImages as $index => $image)
+                                    <div class="swiper-slide">
+                                        <a href="{{ $image['url'] }}" data-glightbox data-gallery="product-gallery-{{ $product->id }}" data-title="{{ $image['alt'] }}" class="relative block aspect-square">
+                                            <img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" class="absolute inset-0 h-full w-full object-contain" @if($index > 0) loading="lazy" @endif>
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @if(count($galleryImages) > 1)
+                                <button type="button" aria-label="{{ __('ui.actions.previous') }}" class="absolute left-3 top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow transition hover:bg-white" data-product-gallery-prev>
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <button type="button" aria-label="{{ __('ui.actions.next') }}" class="absolute right-3 top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow transition hover:bg-white" data-product-gallery-next>
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            @endif
+                        </div>
+
+                        @if(count($galleryImages) > 1)
+                            <div class="swiper mt-3" data-product-gallery-thumbs>
+                                <div class="swiper-wrapper">
+                                    @foreach($galleryImages as $index => $image)
+                                        <div class="swiper-slide cursor-pointer overflow-hidden rounded-xl border-2 border-transparent bg-slate-100 transition [&.swiper-slide-thumb-active]:border-primary">
+                                            <div class="relative aspect-square">
+                                                <img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" class="absolute inset-0 h-full w-full object-contain" @if($index > 3) loading="lazy" @endif>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     @else
-                        <div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-400">
+                        <div class="flex aspect-square items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
                             <div class="text-center">
                                 <i class="fa-solid fa-image text-5xl"></i>
                                 <div class="mt-3 text-sm font-bold">{{ __('ui.product_detail.no_product_image') }}</div>

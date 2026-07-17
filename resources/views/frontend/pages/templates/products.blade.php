@@ -21,14 +21,13 @@
                         <a href="{{ url(app()->getLocale() === 'vi' ? '/san-pham' : '/' . app()->getLocale() . '/products') }}"
                             class="group flex items-center gap-3 rounded px-4 py-3 text-sm font-extrabold transition {{ $activeCategory ? 'text-slate-800 hover:bg-red-50 hover:text-primary' : 'bg-primary text-white shadow-lg shadow-red-900/15' }}">
                             <span class="min-w-0 flex-1">{{ __('ui.common.all_products') }}</span>
-                            <span
-                                class="rounded-full px-2 py-1 text-xs {{ $activeCategory ? 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-primary' : 'bg-white/20 text-white' }}">{{ $totalProductsCount ?? $products->total() }}</span>
                         </a>
 
                         <div class="mt-3 space-y-2">
                             @include('frontend.components.product-category-items', [
                                 'categories' => $categoryTree,
                                 'activeCategory' => $activeCategory,
+                                'activeCategoryAncestorIds' => $activeCategoryAncestorIds,
                                 'level' => 0,
                             ])
                         </div>
@@ -68,13 +67,9 @@
                                     @endif
                                 </div>
                                 <div class="p-5">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span
-                                            class="text-xs font-extrabold uppercase text-primary">{{ $product->category?->translation?->name }}</span>
-                                        @if ($product->sku)
-                                            <span class="text-xs font-bold text-slate-400">{{ $product->sku }}</span>
-                                        @endif
-                                    </div>
+                                    @if ($product->sku)
+                                        <div class="text-right text-xs font-bold text-slate-400">{{ $product->sku }}</div>
+                                    @endif
                                     <h3
                                         class="mt-3 min-h-14 text-lg font-extrabold text-slate-950 transition group-hover:text-primary">
                                         {{ $product->translation?->name }}</h3>

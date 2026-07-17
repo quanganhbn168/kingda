@@ -16,17 +16,7 @@ class ProductCatalogService
 
     public function categories(string $locale)
     {
-        $categories = $this->productCategories->all($locale);
-
-        $categories->each(function (Category $category) use ($locale): void {
-            $category->products_count = Product::query()
-                ->active()
-                ->withPublishedTranslation($locale)
-                ->whereIn('category_id', $category->descendantsAndSelfIds())
-                ->count();
-        });
-
-        return $categories->values();
+        return $this->productCategories->all($locale)->values();
     }
 
     public function listing(Request $request, string $locale, ?string $categorySlug = null): array
@@ -38,6 +28,13 @@ class ProductCatalogService
             : null;
 
         abort_if(filled($activeCategorySlug) && ! $activeCategory, 404);
+
+        $activeCategoryAncestorIds = [];
+        $parentId = $activeCategory?->parent_id;
+        while ($parentId) {
+            $activeCategoryAncestorIds[] = (int) $parentId;
+            $parentId = $categories->firstWhere('id', $parentId)?->parent_id;
+        }
 
         $products = Product::query()
             ->active()
@@ -58,11 +55,8 @@ class ProductCatalogService
             'categories' => $categories,
             'categoryTree' => $this->productCategories->tree($categories),
             'activeCategory' => $activeCategory,
+            'activeCategoryAncestorIds' => $activeCategoryAncestorIds,
             'products' => $products,
-            'totalProductsCount' => Product::query()
-                ->active()
-                ->withPublishedTranslation($locale)
-                ->count(),
         ];
     }
 
