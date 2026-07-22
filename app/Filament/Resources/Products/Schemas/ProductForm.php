@@ -54,7 +54,8 @@ class ProductForm
                         ->options(fn (): array => app(ProductCategoryOptions::class)->leaves())
                         ->helperText('Chỉ hiển thị danh mục cấp lá, không còn danh mục con.')
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->required(),
                     TextInput::make('sku')
                         ->label('SKU')
                         ->maxLength(255),

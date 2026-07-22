@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\PostCategories\Pages;
 
 use App\Enums\CategoryType;
+use App\Filament\Actions\PostCategoryDeleteActions;
 use App\Filament\Resources\PostCategories\PostCategoryResource;
-use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditPostCategory extends EditRecord
@@ -21,7 +21,7 @@ class EditPostCategory extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            PostCategoryDeleteActions::single(),
         ];
     }
 }

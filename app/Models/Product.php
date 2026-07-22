@@ -43,7 +43,17 @@ class Product extends Model
     protected static function booted(): void
     {
         static::saving(function (self $product): void {
-            if (! $product->isDirty('category_id') || ! $product->category_id) {
+            if (! $product->category_id) {
+                if ($product->exists && ! $product->isDirty('category_id')) {
+                    return;
+                }
+
+                throw ValidationException::withMessages([
+                    'category_id' => 'Sản phẩm phải thuộc một danh mục sản phẩm.',
+                ]);
+            }
+
+            if ($product->exists && ! $product->isDirty('category_id')) {
                 return;
             }
 
@@ -138,5 +148,12 @@ class Product extends Model
         return $query->whereHas('translations', function (Builder $query) use ($locale) {
             $query->where('locale', $locale)->where('is_published', true);
         });
+    }
+
+    public function scopeWithRoutableCategory(Builder $query): Builder
+    {
+        return $query->whereHas('category', fn (Builder $query): Builder => $query
+            ->product()
+            ->active());
     }
 }

@@ -137,7 +137,7 @@ class SitemapService
                 ->product())
             ->with([
                 'translations' => fn ($query) => $query
-                    ->where('is_published', true)
+                    ->usable()
                     ->whereNotNull('slug'),
                 'category.translations' => fn ($query) => $query
                     ->where('is_published', true)
@@ -173,7 +173,7 @@ class SitemapService
                 ->post())
             ->with([
                 'translations' => fn ($query) => $query
-                    ->where('is_published', true)
+                    ->usable()
                     ->whereNotNull('slug'),
                 'category.translations' => fn ($query) => $query
                     ->where('is_published', true)

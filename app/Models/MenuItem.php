@@ -92,7 +92,7 @@ class MenuItem extends Model
             $translation = $this->linkable->resolveTranslation($this->locale, publishedOnly: true);
 
             return $translation
-                ? $this->relativeUrl($translation->public_url)
+                ? ($this->relativeUrl($translation->public_url) ?: $this->url)
                 : $this->url;
         }
 

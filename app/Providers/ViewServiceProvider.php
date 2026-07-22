@@ -118,7 +118,7 @@ class ViewServiceProvider extends ServiceProvider
                                     ->where('locale', $locale)
                                     ->where('is_active', true)
                                     ->with('linkable.translations')
-                                    ->orderBy('sort_order')
+                                    ->orderBy('sort_order'),
                             ])
                             ->orderBy('sort_order'),
                     ])
@@ -288,11 +288,11 @@ class ViewServiceProvider extends ServiceProvider
 
         $targetTranslation = $translation?->post
             ?->translations
-            ->first(fn (PostTranslation $item): bool => $item->locale === $targetLocale && $item->is_published);
+            ->first(fn (PostTranslation $item): bool => $item->locale === $targetLocale && $item->isUsable());
 
         $fallbackTranslation = $translation?->post
             ?->translations
-            ->first(fn (PostTranslation $item): bool => $item->locale === 'vi' && $item->is_published);
+            ->first(fn (PostTranslation $item): bool => $item->locale === 'vi' && $item->isUsable());
 
         return $targetTranslation?->public_url
             ?? $fallbackTranslation?->public_url

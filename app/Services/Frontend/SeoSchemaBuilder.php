@@ -25,16 +25,16 @@ class SeoSchemaBuilder
             $this->website(),
             [
                 '@type' => 'CollectionPage',
-                '@id' => $url . '#webpage',
+                '@id' => $url.'#webpage',
                 'url' => $url,
                 'name' => $translation->seo_title ?? $translation->title ?? $name,
                 'description' => $translation->seo_description ?? $translation->description ?? $translation->excerpt ?? null,
                 'inLanguage' => app()->getLocale(),
                 'isPartOf' => ['@id' => url('/#website')],
                 'publisher' => ['@id' => url('/#organization')],
-                'mainEntity' => ['@id' => $url . '#itemlist'],
+                'mainEntity' => ['@id' => $url.'#itemlist'],
             ],
-            $this->itemList($items, $name, $url . '#itemlist'),
+            $this->itemList($items, $name, $url.'#itemlist'),
             $this->breadcrumb($breadcrumbs),
         ]);
     }
@@ -56,7 +56,7 @@ class SeoSchemaBuilder
             $this->website(),
             [
                 '@type' => $type,
-                '@id' => $url . '#webpage',
+                '@id' => $url.'#webpage',
                 'url' => $url,
                 'name' => $name,
                 'description' => $description,
@@ -76,7 +76,7 @@ class SeoSchemaBuilder
 
         $productSchema = [
             '@type' => 'Product',
-            '@id' => $productUrl . '#product',
+            '@id' => $productUrl.'#product',
             'name' => $translation->name,
             'description' => $translation->meta_description,
             'sku' => $product->sku,
@@ -101,13 +101,13 @@ class SeoSchemaBuilder
             $this->website(),
             [
                 '@type' => 'WebPage',
-                '@id' => $productUrl . '#webpage',
+                '@id' => $productUrl.'#webpage',
                 'url' => $productUrl,
                 'name' => $translation->meta_title,
                 'description' => $translation->meta_description,
                 'inLanguage' => app()->getLocale(),
                 'isPartOf' => ['@id' => url('/#website')],
-                'mainEntity' => ['@id' => $productUrl . '#product'],
+                'mainEntity' => ['@id' => $productUrl.'#product'],
             ],
             $productSchema,
             $this->breadcrumb($breadcrumbs),
@@ -123,7 +123,7 @@ class SeoSchemaBuilder
             $this->website(),
             [
                 '@type' => 'NewsArticle',
-                '@id' => $translation->public_url . '#article',
+                '@id' => $translation->public_url.'#article',
                 'headline' => $translation->title,
                 'description' => $translation->meta_description,
                 'image' => $image ? [$image] : null,
@@ -134,12 +134,12 @@ class SeoSchemaBuilder
                     'name' => $post->author?->name ?: app(SiteSettings::class)->site_name,
                 ],
                 'publisher' => ['@id' => url('/#organization')],
-                'mainEntityOfPage' => ['@id' => $translation->public_url . '#webpage'],
+                'mainEntityOfPage' => ['@id' => $translation->public_url.'#webpage'],
                 'url' => $translation->public_url,
             ],
             [
                 '@type' => 'WebPage',
-                '@id' => $translation->public_url . '#webpage',
+                '@id' => $translation->public_url.'#webpage',
                 'url' => $translation->public_url,
                 'name' => $translation->meta_title,
                 'description' => $translation->meta_description,
@@ -152,7 +152,11 @@ class SeoSchemaBuilder
 
     public function resolveOgImage(object $translation): ?string
     {
-        if (method_exists($translation, 'getFirstMediaUrl') && $translation->getFirstMediaUrl('og_image')) {
+        if (
+            ! $translation instanceof PostTranslation
+            && method_exists($translation, 'getFirstMediaUrl')
+            && $translation->getFirstMediaUrl('og_image')
+        ) {
             return $translation->getFirstMediaUrl('og_image');
         }
 
@@ -172,7 +176,7 @@ class SeoSchemaBuilder
         $site = app(SiteSettings::class);
         $company = app(CompanySettings::class);
         $contact = app(ContactSettings::class);
-        $logo = $site->logo ? asset('storage/' . $site->logo) : null;
+        $logo = $site->logo ? asset('storage/'.$site->logo) : null;
 
         return [
             '@type' => 'Organization',

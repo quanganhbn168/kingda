@@ -38,6 +38,7 @@ class ProductCatalogService
 
         $products = Product::query()
             ->active()
+            ->withRoutableCategory()
             ->withPublishedTranslation($locale)
             ->when($activeCategory, fn (Builder $query) => $query->whereIn('category_id', $activeCategory->descendantsAndSelfIds()))
             ->with([
@@ -94,6 +95,7 @@ class ProductCatalogService
     {
         return Product::query()
             ->active()
+            ->withRoutableCategory()
             ->withPublishedTranslation($locale)
             ->whereKeyNot($product->id)
             ->when($product->category_id, fn (Builder $query) => $query->where('category_id', $product->category_id))

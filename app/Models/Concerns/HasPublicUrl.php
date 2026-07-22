@@ -3,7 +3,6 @@
 namespace App\Models\Concerns;
 
 use App\Enums\RouteSegments;
-use Illuminate\Support\Collection;
 
 trait HasPublicUrl
 {
@@ -17,7 +16,7 @@ trait HasPublicUrl
      * Provide any additional segments after the root segment.
      * By default it returns the slug, but you can override this for nested structures
      * like categories and products.
-     * 
+     *
      * @return array<int, string|null>
      */
     protected function urlSegments(): array
@@ -28,12 +27,20 @@ trait HasPublicUrl
     /**
      * Get the public URL attribute.
      */
-    public function getPublicUrlAttribute(): string
+    public function getPublicUrlAttribute(): ?string
     {
+        $segments = $this->urlSegments();
+
+        if (collect($segments)->contains(
+            fn (mixed $segment): bool => ! is_string($segment) || blank($segment),
+        )) {
+            return null;
+        }
+
         return RouteSegments::url(
             $this->routeSegmentKey(),
             $this->locale,
-            ...$this->urlSegments()
+            ...$segments,
         );
     }
 }

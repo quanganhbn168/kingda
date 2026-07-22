@@ -100,7 +100,7 @@ class PostController extends Controller
         $post->loadMissing('translations', 'category.translations');
 
         return $post->translations
-            ->filter(fn ($translation): bool => $translation->is_published)
+            ->filter(fn ($translation): bool => $translation->isUsable())
             ->mapWithKeys(fn ($translation): array => [
                 $translation->locale => $this->urls->post($post, $translation, $translation->locale),
             ])

@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 class PostTranslationFallbackTest extends TestCase
 {
-    public function test_missing_locale_uses_the_published_vietnamese_translation(): void
+    public function test_missing_locale_uses_the_vietnamese_translation(): void
     {
         $post = new Post;
         $post->setRelation('translations', new Collection([
@@ -27,7 +27,7 @@ class PostTranslationFallbackTest extends TestCase
         $this->assertSame('vi', $post->resolveTranslation('en', publishedOnly: true)?->locale);
     }
 
-    public function test_an_explicitly_unpublished_locale_does_not_fall_back(): void
+    public function test_an_existing_locale_is_used_regardless_of_legacy_translation_status(): void
     {
         $post = new Post;
         $post->setRelation('translations', new Collection([
@@ -45,7 +45,7 @@ class PostTranslationFallbackTest extends TestCase
             ]),
         ]));
 
-        $this->assertNull($post->resolveTranslation('en', publishedOnly: true));
+        $this->assertSame('en', $post->resolveTranslation('en', publishedOnly: true)?->locale);
     }
 
     public function test_a_fallback_post_uses_its_vietnamese_public_url(): void

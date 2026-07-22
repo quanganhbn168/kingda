@@ -4,19 +4,21 @@ namespace App\Filament\Resources\Posts\Schemas;
 
 use App\Enums\CategoryType;
 use App\Enums\Locale;
+use App\Enums\MetaRobots;
 use App\Models\Category;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,47 +29,64 @@ class PostForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
-                Section::make('Thông tin bài viết')
-                    ->columns(2)
+                Grid::make([
+                    'default' => 1,
+                    'xl' => 3,
+                ])
+                    ->columnSpanFull()
                     ->schema([
-                        Select::make('category_id')
-                            ->label('Danh mục')
-                            ->options(fn (): array => Category::query()
-                                ->where('type', CategoryType::Post->value)
-                                ->with('translation')
-                                ->ordered()
-                                ->get()
-                                ->mapWithKeys(fn (Category $category): array => [
-                                    $category->id => $category->translation?->name ?: 'Danh mục #' . $category->id,
-                                ])
-                                ->all())
-                            ->searchable()
-                            ->preload(),
-                        Select::make('author_id')
-                            ->label('Tác giả')
-                            ->relationship('author', 'name')
-                            ->searchable()
-                            ->preload(),
-                        TextInput::make('sort_order')
-                            ->label('Thứ tự')
-                            ->required()
-                            ->numeric()
-                            ->default(0),
-                        Toggle::make('is_featured')
-                            ->label('Nổi bật')
-                            ->required(),
-                        Toggle::make('is_active')
-                            ->label('Kích hoạt')
-                            ->required(),
+                        Group::make([
+                            Tabs::make('Nội dung đa ngôn ngữ')
+                                ->tabs(collect(Locale::cases())
+                                    ->map(fn (Locale $locale): Tab => self::translationTab($locale))
+                                    ->all())
+                                ->persistTab()
+                                ->id('post-translation-tabs')
+                                ->columnSpanFull(),
+                        ])
+                            ->columnSpan([
+                                'default' => 1,
+                                'xl' => 2,
+                            ]),
+                        Group::make([
+                            Section::make('Thiết lập bài viết')
+                                ->schema([
+                                    Select::make('category_id')
+                                        ->label('Danh mục')
+                                        ->options(fn (): array => Category::query()
+                                            ->where('type', CategoryType::Post->value)
+                                            ->with('translation')
+                                            ->ordered()
+                                            ->get()
+                                            ->mapWithKeys(fn (Category $category): array => [
+                                                $category->id => $category->translation?->name ?: 'Danh mục #'.$category->id,
+                                            ])
+                                            ->all())
+                                        ->searchable()
+                                        ->preload()
+                                        ->required(),
+                                    Select::make('author_id')
+                                        ->label('Tác giả')
+                                        ->relationship('author', 'name')
+                                        ->searchable()
+                                        ->preload(),
+                                    Toggle::make('is_featured')
+                                        ->label('Nổi bật')
+                                        ->default(false)
+                                        ->required(),
+                                    Toggle::make('is_active')
+                                        ->label('Xuất bản')
+                                        ->default(true)
+                                        ->required(),
+                                ]),
+                        ])
+                            ->columnSpan([
+                                'default' => 1,
+                                'xl' => 1,
+                            ]),
                     ]),
-                Tabs::make('Nội dung đa ngôn ngữ')
-                    ->tabs(collect(Locale::cases())
-                        ->map(fn (Locale $locale): Tab => self::translationTab($locale))
-                        ->all())
-                    ->persistTab()
-                    ->id('post-translation-tabs')
-                    ->columnSpanFull(),
             ]);
     }
 
@@ -77,21 +96,19 @@ class PostForm
 
         return Tab::make($locale->label())
             ->schema([
-                \Filament\Forms\Components\Repeater::make('translations_' . $locale->value)
+                Repeater::make('translations_'.$locale->value)
                     ->label($locale->label())
-                    ->helperText($isVietnamese
-                        ? 'Bản Tiếng Việt là bắt buộc.'
-                        : 'Không bắt buộc. Nếu không có, website sẽ sử dụng bản Tiếng Việt.')
                     ->relationship(
                         'translations',
                         modifyQueryUsing: fn (Builder $query): Builder => $query->where('locale', $locale->value),
                     )
                     ->schema(self::translationFields($locale))
+                    ->columns(2)
                     ->defaultItems($isVietnamese ? 1 : 0)
                     ->maxItems(1)
                     ->minItems($isVietnamese ? 1 : 0)
                     ->addable(! $isVietnamese)
-                    ->addActionLabel('Thêm bản dịch ' . $locale->label())
+                    ->addActionLabel('Thêm bản dịch '.$locale->label())
                     ->deletable(! $isVietnamese)
                     ->reorderable(false)
                     ->cloneable(false)
@@ -112,100 +129,55 @@ class PostForm
     private static function translationFields(Locale $locale): array
     {
         return [
-            Section::make('Nội dung')
-                ->columns(2)
-                ->schema([
-                    Hidden::make('locale')
-                        ->default($locale->value)
-                        ->required(),
-                    TextInput::make('locale_label')
-                        ->label('Ngôn ngữ')
-                        ->disabled()
-                        ->dehydrated(false)
-                        ->default($locale->label())
-                        ->afterStateHydrated(fn (TextInput $component): mixed => $component->state($locale->label())),
-                    TextInput::make('title')
-                        ->label('Tiêu đề')
-                        ->required()
-                        ->live(onBlur: true)
-                        ->afterStateUpdated(function (?string $state, Get $get, Set $set): void {
-                            if (filled($get('slug')) || blank($state)) {
-                                return;
-                            }
-
-                            $set('slug', Str::slug($state));
-                        })
-                        ->maxLength(255),
-                    TextInput::make('slug')
-                        ->label('Slug')
-                        ->placeholder('Tự sinh khi lưu nếu để trống')
-                        ->helperText('Có thể sửa tay cho ngắn gọn, không cần bê nguyên tiêu đề.')
-                        ->maxLength(255),
-                    DateTimePicker::make('published_at')
-                        ->label('Ngày xuất bản'),
-                    Textarea::make('description')
-                        ->label('Mô tả ngắn')
-                        ->columnSpanFull(),
-                    RichEditor::make('content')
-                        ->label('Nội dung')
-                        ->floatingToolbars(null)
-                        ->columnSpanFull(),
-                    Toggle::make('is_published')
-                        ->label('Xuất bản')
-                        ->default(true),
-                ]),
-            Section::make('Đa phương tiện')
-                ->columns(2)
-                ->schema([
-                    SpatieMediaLibraryFileUpload::make('thumbnail')
-                        ->label('Ảnh đại diện')
-                        ->collection('thumbnail')
-                        ->disk('public')
-                        ->visibility('public')
-                        ->image(),
-                    SpatieMediaLibraryFileUpload::make('hero')
-                        ->label('Ảnh hero')
-                        ->collection('hero')
-                        ->disk('public')
-                        ->visibility('public')
-                        ->image(),
-                    SpatieMediaLibraryFileUpload::make('gallery')
-                        ->label('Thư viện ảnh')
-                        ->collection('gallery')
-                        ->disk('public')
-                        ->visibility('public')
-                        ->image()
-                        ->multiple()
-                        ->reorderable()
-                        ->columnSpanFull(),
-                ]),
-            Section::make('SEO')
-                ->columns(2)
-                ->schema([
-                    TextInput::make('seo_title')
-                        ->label('SEO title')
-                        ->maxLength(255),
-                    TextInput::make('canonical_url')
-                        ->label('Canonical URL')
-                        ->maxLength(255),
-                    Textarea::make('seo_description')
-                        ->label('SEO description'),
-                    TextInput::make('meta_robots')
-                        ->label('Meta robots')
-                        ->default('index,follow')
-                        ->maxLength(255),
-                    TextInput::make('og_title')
-                        ->label('OG title')
-                        ->maxLength(255),
-                    Textarea::make('og_description')
-                        ->label('OG description'),
-                    SpatieMediaLibraryFileUpload::make('og_image')
-                        ->label('OG image')
-                        ->collection('og_image')
-                        ->disk('public')
-                        ->visibility('public')
-                        ->image(),
-                ]),
+            Hidden::make('locale')
+                ->default($locale->value)
+                ->required(),
+            TextInput::make('title')
+                ->label('Tiêu đề')
+                ->required()
+                ->live(onBlur: true)
+                ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug((string) $state)))
+                ->partiallyRenderComponentsAfterStateUpdated(['slug'])
+                ->maxLength(255)
+                ->columnSpanFull(),
+            TextInput::make('slug')
+                ->label('Slug')
+                ->maxLength(255)
+                ->columnSpanFull(),
+            Textarea::make('description')
+                ->label('Mô tả ngắn')
+                ->columnSpanFull(),
+            RichEditor::make('content')
+                ->label('Nội dung')
+                ->floatingToolbars(null)
+                ->columnSpanFull(),
+            SpatieMediaLibraryFileUpload::make('thumbnail')
+                ->label('Ảnh đại diện')
+                ->collection('thumbnail')
+                ->disk('public')
+                ->visibility('public')
+                ->image(),
+            SpatieMediaLibraryFileUpload::make('hero')
+                ->label('Ảnh hero')
+                ->collection('hero')
+                ->disk('public')
+                ->visibility('public')
+                ->image(),
+            TextInput::make('seo_title')
+                ->label('SEO title')
+                ->maxLength(255)
+                ->columnSpanFull(),
+            Textarea::make('seo_description')
+                ->label('SEO description')
+                ->columnSpanFull(),
+            Select::make('meta_robots')
+                ->label('Hiển thị trên công cụ tìm kiếm')
+                ->options(MetaRobots::options())
+                ->default(MetaRobots::IndexFollow->value)
+                ->required()
+                ->native(false)
+                ->selectablePlaceholder(false)
+                ->columnSpanFull(),
         ];
     }
 }

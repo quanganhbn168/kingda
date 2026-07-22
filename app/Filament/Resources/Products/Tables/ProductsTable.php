@@ -13,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -29,6 +30,7 @@ class ProductsTable
                     ->sortable(),
                 TextColumn::make('category.translation.name')
                     ->label('Danh mục')
+                    ->placeholder('Chưa phân loại')
                     ->searchable(),
                 ToggleColumn::make('is_home')
                     ->label('Trang chủ')
@@ -54,6 +56,15 @@ class ProductsTable
                     ->options(fn (): array => app(ProductCategoryOptions::class)->leaves())
                     ->searchable()
                     ->preload(),
+                TernaryFilter::make('category_status')
+                    ->label('Tình trạng danh mục')
+                    ->placeholder('Tất cả')
+                    ->trueLabel('Đã phân loại')
+                    ->falseLabel('Chưa phân loại')
+                    ->queries(
+                        true: fn ($query) => $query->whereNotNull('category_id'),
+                        false: fn ($query) => $query->whereNull('category_id'),
+                    ),
             ])
             ->recordActions([
                 EditAction::make(),

@@ -4,12 +4,12 @@ namespace Tests\Feature;
 
 use App\Enums\ContactMessageStatus;
 use App\Models\ContactMessage;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ContactMessageTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     public function test_contact_form_stores_a_valid_message(): void
     {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,8 +12,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class ProductTranslation extends Model implements HasMedia
 {
+    use HasPublicUrl;
     use InteractsWithMedia;
-    use \App\Models\Concerns\HasPublicUrl;
 
     protected $fillable = [
         'product_id',
@@ -100,12 +101,21 @@ class ProductTranslation extends Model implements HasMedia
 
         $categorySlug = $categoryTranslation?->slug;
 
-        if (! $categorySlug && $this->product_id) {
+        if (
+            ! $categorySlug
+            && $this->product_id
+            && ! ($product?->relationLoaded('category') ?? false)
+        ) {
             $cacheKey = $this->product_id.':'.$locale;
-            $categorySlug = $categorySlugCache[$cacheKey] ??= CategoryTranslation::query()
-                ->where('locale', $locale)
-                ->whereHas('category.products', fn (Builder $query): Builder => $query->whereKey($this->product_id))
-                ->value('slug');
+
+            if (! array_key_exists($cacheKey, $categorySlugCache)) {
+                $categorySlugCache[$cacheKey] = CategoryTranslation::query()
+                    ->where('locale', $locale)
+                    ->whereHas('category.products', fn (Builder $query): Builder => $query->whereKey($this->product_id))
+                    ->value('slug');
+            }
+
+            $categorySlug = $categorySlugCache[$cacheKey];
         }
 
         return [$categorySlug, $this->slug];

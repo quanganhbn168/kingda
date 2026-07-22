@@ -15,6 +15,7 @@ use App\Models\IndustryTranslation;
 use App\Models\Page;
 use App\Models\PageTranslation;
 use App\Models\Post;
+use App\Models\Product;
 use App\Models\Slide;
 use App\Services\Frontend\ListingPageService;
 use App\Services\Frontend\LocalizedContent;
@@ -301,6 +302,7 @@ class PageController extends Controller
                 $ids[] = $child->id;
                 $ids = array_merge($ids, $getDescendantIds($child->id));
             }
+
             return $ids;
         };
 
@@ -313,7 +315,7 @@ class PageController extends Controller
         }
         $allNeededCategoryIds = array_unique($allNeededCategoryIds);
 
-        $allProducts = \App\Models\Product::query()
+        $allProducts = Product::query()
             ->active()
             ->where('is_home', true)
             ->whereIn('category_id', $allNeededCategoryIds)
@@ -326,7 +328,7 @@ class PageController extends Controller
             ->ordered()
             ->get();
 
-        $productCounts = \App\Models\Product::query()
+        $productCounts = Product::query()
             ->active()
             ->whereIn('category_id', $allNeededCategoryIds)
             ->withPublishedTranslation($locale)
@@ -337,9 +339,9 @@ class PageController extends Controller
         return $rootCategories
             ->map(function (Category $category) use ($rootCategoryTreeIds, $allProducts, $productCounts) {
                 $treeIds = $rootCategoryTreeIds[$category->id];
-                
+
                 $products = $allProducts->filter(fn ($p) => in_array($p->category_id, $treeIds))->values();
-                
+
                 $totalCount = 0;
                 foreach ($treeIds as $id) {
                     $totalCount += $productCounts->get($id, 0);
@@ -347,6 +349,7 @@ class PageController extends Controller
 
                 $category->setRelation('products', $products);
                 $category->setAttribute('total_products_count', $totalCount);
+
                 return $category;
             })
             ->map(fn (Category $category): mixed => LocalizedContent::toFluent([
@@ -535,6 +538,7 @@ class PageController extends Controller
 
         return Post::query()
             ->active()
+            ->withRoutableCategory()
             ->withPublishedTranslation($locale)
             ->with([
                 'translations' => fn ($query) => $query
@@ -547,7 +551,7 @@ class PageController extends Controller
             ->limit($limit > 0 ? $limit : 3)
             ->get()
             ->each(function (Post $post) use ($locale): void {
-                $post->useResolvedTranslation($locale, publishedOnly: true);
+                $post->useResolvedTranslation($locale);
             });
     }
 

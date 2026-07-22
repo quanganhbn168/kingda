@@ -100,6 +100,10 @@ class Category extends Model
                 return $category->canDeleteProductCategory(fresh: true) ? null : false;
             }
 
+            if ($category->type === CategoryType::Post->value) {
+                return $category->canDeletePostCategory(fresh: true) ? null : false;
+            }
+
             return $category->children()->exists() ? false : null;
         });
     }
@@ -291,6 +295,40 @@ class Category extends Model
 
         if ($hasProducts) {
             return 'Danh mục đang chứa sản phẩm. Hãy chuyển sản phẩm sang danh mục lá khác trước.';
+        }
+
+        if ($hasChildren) {
+            return 'Danh mục đang có danh mục con. Hãy chuyển hoặc xóa hết danh mục con trước.';
+        }
+
+        return null;
+    }
+
+    public function canDeletePostCategory(bool $fresh = false): bool
+    {
+        return $this->postCategoryDeletionBlockReason($fresh) === null;
+    }
+
+    public function postCategoryDeletionBlockReason(bool $fresh = false): ?string
+    {
+        if ($this->type !== CategoryType::Post->value) {
+            return null;
+        }
+
+        $hasPosts = (! $fresh && array_key_exists('posts_count', $this->attributes))
+            ? ((int) $this->attributes['posts_count'] > 0)
+            : $this->posts()->exists();
+
+        $hasChildren = (! $fresh && array_key_exists('children_count', $this->attributes))
+            ? ((int) $this->attributes['children_count'] > 0)
+            : $this->children()->exists();
+
+        if ($hasPosts && $hasChildren) {
+            return 'Danh mục đang chứa bài viết và danh mục con. Hãy chuyển bài viết, sau đó chuyển hoặc xóa hết danh mục con trước.';
+        }
+
+        if ($hasPosts) {
+            return 'Danh mục đang chứa bài viết. Hãy chuyển bài viết sang danh mục khác trước.';
         }
 
         if ($hasChildren) {

@@ -55,6 +55,7 @@ class PostCatalogService
 
         $posts = Post::query()
             ->active()
+            ->withRoutableCategory()
             ->withPublishedTranslation($locale)
             ->when($activeCategory, fn (Builder $query) => $query->whereIn('category_id', $activeCategory->descendantsAndSelfIds()))
             ->with([
@@ -80,8 +81,8 @@ class PostCatalogService
     public function detail(string $locale, string $categorySlug, string $postSlug): array
     {
         $translation = PostTranslation::query()
-            ->published()
             ->locale($locale)
+            ->usable()
             ->slug($postSlug)
             ->whereHas('post.category.translations', fn (Builder $query) => $query
                 ->where('locale', $locale)
@@ -115,6 +116,7 @@ class PostCatalogService
     {
         $relatedPosts = Post::query()
             ->active()
+            ->withRoutableCategory()
             ->withPublishedTranslation($locale)
             ->whereKeyNot($post->id)
             ->when($post->category_id, fn (Builder $query) => $query->where('category_id', $post->category_id))
@@ -137,6 +139,7 @@ class PostCatalogService
 
         $extraPosts = Post::query()
             ->active()
+            ->withRoutableCategory()
             ->withPublishedTranslation($locale)
             ->whereKeyNot($post->id)
             ->whereNotIn('id', $relatedPosts->pluck('id'))
@@ -159,7 +162,7 @@ class PostCatalogService
     private function applyResolvedTranslations(Collection $posts, string $locale): void
     {
         $posts->each(function (Post $post) use ($locale): void {
-            $post->useResolvedTranslation($locale, publishedOnly: true);
+            $post->useResolvedTranslation($locale);
         });
     }
 
@@ -190,10 +193,10 @@ class PostCatalogService
                 $suffix = 2;
 
                 while (isset($usedIds[$id])) {
-                    $id = $baseId . '-' . $suffix++;
+                    $id = $baseId.'-'.$suffix++;
                 }
 
-                $attributes .= ' id="' . e($id) . '"';
+                $attributes .= ' id="'.e($id).'"';
             }
 
             $usedIds[$id] = true;
@@ -203,7 +206,7 @@ class PostCatalogService
                 'level' => $level,
             ];
 
-            return '<h' . $level . $attributes . '>' . $innerHtml . '</h' . $level . '>';
+            return '<h'.$level.$attributes.'>'.$innerHtml.'</h'.$level.'>';
         }, $content);
 
         return [$content, $items];

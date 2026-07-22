@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Validation\ValidationException;
 
 class Post extends Model
 {
@@ -31,6 +32,39 @@ class Post extends Model
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $post): void {
+            if ((int) ($post->sort_order ?? 0) <= 0) {
+                $post->sort_order = ((int) self::query()->max('sort_order')) + 10;
+            }
+        });
+
+        static::saving(function (self $post): void {
+            if (! $post->category_id) {
+                if ($post->exists && ! $post->isDirty('category_id')) {
+                    return;
+                }
+
+                throw ValidationException::withMessages([
+                    'category_id' => 'Bài viết phải thuộc một danh mục bài viết.',
+                ]);
+            }
+
+            if ($post->exists && ! $post->isDirty('category_id')) {
+                return;
+            }
+
+            $category = Category::query()->find($post->category_id);
+
+            if (! $category || $category->type !== Category::TYPE_POST) {
+                throw ValidationException::withMessages([
+                    'category_id' => 'Danh mục bài viết không hợp lệ.',
+                ]);
+            }
+        });
+    }
 
     public function category(): BelongsTo
     {
@@ -55,7 +89,7 @@ class Post extends Model
 
     public function publishedTranslation(): HasOne
     {
-        return $this->translation()->where('is_published', true);
+        return $this->translation();
     }
 
     public function translationFor(?string $locale = null): HasOne
@@ -80,7 +114,7 @@ class Post extends Model
         );
 
         if ($translation) {
-            return (! $publishedOnly || $translation->is_published) ? $translation : null;
+            return $translation;
         }
 
         if ($locale === $fallbackLocale) {
@@ -91,7 +125,7 @@ class Post extends Model
             fn (PostTranslation $item): bool => $item->locale === $fallbackLocale && $item->isUsable(),
         );
 
-        return ($fallback && (! $publishedOnly || $fallback->is_published)) ? $fallback : null;
+        return $fallback;
     }
 
     public function useResolvedTranslation(?string $locale = null, bool $publishedOnly = false): static
@@ -103,12 +137,12 @@ class Post extends Model
         return $this;
     }
 
-    public function getSlugUrlAttribute(): string
+    public function getSlugUrlAttribute(): ?string
     {
         $translation = $this->resolveTranslation('vi');
 
         if (! $translation) {
-            return '';
+            return null;
         }
 
         $translation->setRelation('post', $this);
@@ -126,8 +160,15 @@ class Post extends Model
         $locale = $locale ?: app()->getLocale();
 
         return $query->whereHas('translations', function (Builder $query) use ($locale) {
-            $query->where('locale', $locale)->where('is_published', true);
+            $query->where('locale', $locale)->usable();
         })->with(['translation' => fn ($query) => $query->where('locale', $locale)]);
+    }
+
+    public function scopeWithRoutableCategory(Builder $query): Builder
+    {
+        return $query->whereHas('category', fn (Builder $query): Builder => $query
+            ->post()
+            ->active());
     }
 
     public function scopeWithPublishedTranslation(Builder $query, ?string $locale = null): Builder
@@ -137,7 +178,6 @@ class Post extends Model
         if ($locale === 'vi') {
             return $query->whereHas('translations', fn (Builder $query): Builder => $query
                 ->locale('vi')
-                ->published()
                 ->usable());
         }
 
@@ -145,7 +185,6 @@ class Post extends Model
             $query
                 ->whereHas('translations', fn (Builder $translationQuery): Builder => $translationQuery
                     ->locale($locale)
-                    ->published()
                     ->usable())
                 ->orWhere(function (Builder $fallbackQuery) use ($locale): void {
                     $fallbackQuery
@@ -154,7 +193,6 @@ class Post extends Model
                             ->usable())
                         ->whereHas('translations', fn (Builder $translationQuery): Builder => $translationQuery
                             ->locale('vi')
-                            ->published()
                             ->usable());
                 });
         });

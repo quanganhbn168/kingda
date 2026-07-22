@@ -14,20 +14,21 @@
             ?: data_get($seo, 'description')
             ?: data_get($seo, 'excerpt')
             ?: ($seoSettings->default_seo_description ?? null);
-        $ogTitle = data_get($seo, 'og_title') ?: $seoTitle;
-        $ogDescription = data_get($seo, 'og_description') ?: $seoDescription;
-        $canonicalUrl = data_get($seo, 'canonical_url')
-            ?: data_get($seo, 'public_url')
-            ?: url()->current();
+        $isPostTranslation = $seo instanceof \App\Models\PostTranslation;
+        $ogTitle = $isPostTranslation ? $seoTitle : (data_get($seo, 'og_title') ?: $seoTitle);
+        $ogDescription = $isPostTranslation ? $seoDescription : (data_get($seo, 'og_description') ?: $seoDescription);
+        $canonicalUrl = $isPostTranslation
+            ? (data_get($seo, 'public_url') ?: url()->current())
+            : (data_get($seo, 'canonical_url') ?: data_get($seo, 'public_url') ?: url()->current());
         $robots = data_get($seo, 'meta_robots')
             ?: ($seoSettings->default_robots ?? null)
             ?: 'index,follow';
         $resolvedOgImage = $ogImage ?? null;
 
         if (! $resolvedOgImage && $seo && method_exists($seo, 'getFirstMediaUrl')) {
-            $resolvedOgImage = $seo->getFirstMediaUrl('og_image')
-                ?: $seo->getFirstMediaUrl('hero')
-                ?: $seo->getFirstMediaUrl('thumbnail');
+            $resolvedOgImage = $isPostTranslation
+                ? ($seo->getFirstMediaUrl('hero') ?: $seo->getFirstMediaUrl('thumbnail'))
+                : ($seo->getFirstMediaUrl('og_image') ?: $seo->getFirstMediaUrl('hero') ?: $seo->getFirstMediaUrl('thumbnail'));
         }
 
         $resolvedOgImage = $resolvedOgImage

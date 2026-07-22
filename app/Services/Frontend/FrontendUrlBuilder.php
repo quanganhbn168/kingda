@@ -6,10 +6,10 @@ use App\Enums\CategoryType;
 use App\Enums\RouteSegments;
 use App\Models\Category;
 use App\Models\CategoryTranslation;
-use App\Models\Product;
-use App\Models\ProductTranslation;
 use App\Models\Post;
 use App\Models\PostTranslation;
+use App\Models\Product;
+use App\Models\ProductTranslation;
 
 class FrontendUrlBuilder
 {
@@ -54,11 +54,11 @@ class FrontendUrlBuilder
             $categoryTranslation = $category->translations->firstWhere('locale', $locale);
         }
 
-        $segments = collect([$categoryTranslation?->slug, $translation->slug])
-            ->filter()
-            ->all();
+        if (! $categoryTranslation?->slug) {
+            return null;
+        }
 
-        return RouteSegments::url('products', $locale, ...$segments);
+        return RouteSegments::url('products', $locale, $categoryTranslation->slug, $translation->slug);
     }
 
     public function post(Post $post, ?PostTranslation $translation, string $locale): ?string
@@ -81,10 +81,10 @@ class FrontendUrlBuilder
             $categoryTranslation = $category->translations->firstWhere('locale', $locale);
         }
 
-        $segments = collect([$categoryTranslation?->slug, $translation->slug])
-            ->filter()
-            ->all();
+        if (! $categoryTranslation?->slug) {
+            return null;
+        }
 
-        return RouteSegments::url('news', $locale, ...$segments);
+        return RouteSegments::url('news', $locale, $categoryTranslation->slug, $translation->slug);
     }
 }

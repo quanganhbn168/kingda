@@ -2,14 +2,11 @@
 
 namespace App\Filament\Resources\PostCategories\Tables;
 
-use App\Enums\CategoryType;
+use App\Filament\Actions\PostCategoryDeleteActions;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class PostCategoriesTable
@@ -42,19 +39,18 @@ class PostCategoriesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                
+
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
+                PostCategoryDeleteActions::single(),
             ])
             ->reorderable('sort_order')
             ->defaultSort('sort_order')
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    PostCategoryDeleteActions::bulk(),
                 ]),
             ]);
     }
 }
-
