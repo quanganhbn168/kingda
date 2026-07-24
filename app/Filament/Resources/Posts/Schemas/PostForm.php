@@ -103,6 +103,19 @@ class PostForm
                         fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
                     )
                     ->columnSpanFull(),
+                Section::make('Nội dung')
+                    ->schema([
+                        RichEditor::make(self::translationContentField($locale))
+                            ->label('Nội dung')
+                            ->afterStateHydrated(
+                                fn (RichEditor $component, ?PostTranslation $record): mixed => $component->state(
+                                    $record?->content,
+                                ),
+                            )
+                            ->floatingToolbars(null)
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -149,16 +162,6 @@ class PostForm
                 ->columnSpanFull(),
             Textarea::make('description')
                 ->label('Mô tả ngắn')
-                ->columnSpanFull(),
-            RichEditor::make(self::translationContentField($locale))
-                ->label('Nội dung')
-                ->afterStateHydrated(
-                    fn (RichEditor $component, ?PostTranslation $record): mixed => $component->state(
-                        $record?->content,
-                    ),
-                )
-                ->floatingToolbars(null)
-                ->dehydrated(false)
                 ->columnSpanFull(),
             SpatieMediaLibraryFileUpload::make('thumbnail')
                 ->label('Ảnh đại diện')
