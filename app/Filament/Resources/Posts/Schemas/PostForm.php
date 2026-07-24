@@ -6,7 +6,6 @@ use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Enums\MetaRobots;
 use App\Models\Category;
-use App\Models\PostTranslation;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -19,7 +18,6 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
@@ -97,10 +95,10 @@ class PostForm
                 Group::make(self::translationFields($locale))
                     ->relationship(self::translationRelationship($locale))
                     ->mutateRelationshipDataBeforeCreateUsing(
-                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
+                        fn (array $data): array => self::translationData($data, $locale),
                     )
                     ->mutateRelationshipDataBeforeSaveUsing(
-                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
+                        fn (array $data): array => self::translationData($data, $locale),
                     )
                     ->columnSpanFull(),
             ]);
@@ -115,18 +113,12 @@ class PostForm
         };
     }
 
-    private static function translationData(array $data, Get $get, Locale $locale): array
+    private static function translationData(array $data, Locale $locale): array
     {
         return [
             ...$data,
             'locale' => $locale->value,
-            'content' => $get(self::translationContentField($locale)),
         ];
-    }
-
-    private static function translationContentField(Locale $locale): string
-    {
-        return 'content_'.$locale->value;
     }
 
     private static function translationFields(Locale $locale): array
@@ -150,13 +142,8 @@ class PostForm
             Textarea::make('description')
                 ->label('Mô tả ngắn')
                 ->columnSpanFull(),
-            RichEditor::make(self::translationContentField($locale))
+            RichEditor::make('content')
                 ->label('Nội dung')
-                ->afterStateHydrated(
-                    fn (RichEditor $component, ?PostTranslation $record): mixed => $component->state(
-                        $record?->content,
-                    ),
-                )
                 ->floatingToolbars(null)
                 ->columnSpanFull(),
             SpatieMediaLibraryFileUpload::make('thumbnail')
