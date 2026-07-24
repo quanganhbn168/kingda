@@ -6,7 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Enums\MetaRobots;
 use App\Models\Category;
-use App\Models\Post;
+use App\Models\PostTranslation;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -153,8 +153,8 @@ class PostForm
             RichEditor::make(self::translationContentField($locale))
                 ->label('Nội dung')
                 ->afterStateHydrated(
-                    fn (RichEditor $component, ?Post $record): mixed => $component->state(
-                        $record?->translationFor($locale->value)->value('content'),
+                    fn (RichEditor $component, ?PostTranslation $record): mixed => $component->state(
+                        $record?->content,
                     ),
                 )
                 ->floatingToolbars(null)
