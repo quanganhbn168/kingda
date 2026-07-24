@@ -6,7 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Enums\MetaRobots;
 use App\Models\Category;
-use App\Models\Post;
+use App\Models\PostTranslation;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -103,19 +103,6 @@ class PostForm
                         fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
                     )
                     ->columnSpanFull(),
-                RichEditor::make(self::translationContentField($locale))
-                    ->label('Nội dung')
-                    ->afterStateHydrated(
-                        function (RichEditor $component, ?Post $record) use ($locale): mixed {
-                            if (! $record) {
-                                return null;
-                            }
-
-                            return $component->state($record->translationFor($locale->value)->value('content'));
-                        }
-                    )
-                    ->floatingToolbars(null)
-                    ->columnSpanFull(),
             ]);
     }
 
@@ -162,6 +149,15 @@ class PostForm
                 ->columnSpanFull(),
             Textarea::make('description')
                 ->label('Mô tả ngắn')
+                ->columnSpanFull(),
+            RichEditor::make(self::translationContentField($locale))
+                ->label('Nội dung')
+                ->afterStateHydrated(
+                    fn (RichEditor $component, ?PostTranslation $record): mixed => $component->state(
+                        $record?->content,
+                    ),
+                )
+                ->floatingToolbars(null)
                 ->columnSpanFull(),
             SpatieMediaLibraryFileUpload::make('thumbnail')
                 ->label('Ảnh đại diện')
