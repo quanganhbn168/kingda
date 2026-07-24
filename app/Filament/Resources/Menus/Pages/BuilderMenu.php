@@ -721,7 +721,7 @@ class BuilderMenu extends Page
                 ->all(),
             'post' => Post::query()
                 ->with('translations')
-                ->ordered()
+                ->latest('created_at')
                 ->get()
                 ->mapWithKeys(fn (Post $post): array => [
                     $post->id => $post->resolveTranslation('vi')?->title ?: 'Bài viết #' . $post->id,

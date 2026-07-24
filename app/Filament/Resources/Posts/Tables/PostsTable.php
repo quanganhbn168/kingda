@@ -87,7 +87,7 @@ class PostsTable
             ])
             ->modifyQueryUsing(fn ($query) => $query->with(['translations', 'category.translations']))
             ->reorderable('sort_order')
-            ->defaultSort('sort_order')
+            ->defaultSort('created_at', 'desc')
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
