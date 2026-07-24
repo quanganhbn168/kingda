@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Enums\MetaRobots;
 use App\Models\Category;
+use App\Models\Post;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -18,6 +19,7 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
@@ -95,12 +97,25 @@ class PostForm
                 Group::make(self::translationFields($locale))
                     ->relationship(self::translationRelationship($locale))
                     ->mutateRelationshipDataBeforeCreateUsing(
-                        fn (array $data): array => self::translationData($data, $locale),
+                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
                     )
                     ->mutateRelationshipDataBeforeSaveUsing(
-                        fn (array $data): array => self::translationData($data, $locale),
+                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
                     )
                     ->columnSpanFull(),
+
+                Section::make('Nội dung chi tiết')
+                    ->schema([
+                        RichEditor::make(self::translationContentField($locale))
+                            ->label('Nội dung')
+                            ->afterStateHydrated(
+                                fn (RichEditor $component, ?Post $record): mixed => $component->state(
+                                    $record?->translationFor($locale->value)->value('content')
+                                ),
+                            )
+                            ->dehydrated(false)
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -113,11 +128,17 @@ class PostForm
         };
     }
 
-    private static function translationData(array $data, Locale $locale): array
+    private static function translationContentField(Locale $locale): string
+    {
+        return 'content_' . $locale->value;
+    }
+
+    private static function translationData(array $data, Get $get, Locale $locale): array
     {
         return [
             ...$data,
             'locale' => $locale->value,
+            'content' => $get(self::translationContentField($locale)),
         ];
     }
 
@@ -141,10 +162,6 @@ class PostForm
                 ->columnSpanFull(),
             Textarea::make('description')
                 ->label('Mô tả ngắn')
-                ->columnSpanFull(),
-            RichEditor::make('content')
-                ->label('Nội dung')
-                ->floatingToolbars(null)
                 ->columnSpanFull(),
             SpatieMediaLibraryFileUpload::make('thumbnail')
                 ->label('Ảnh đại diện')

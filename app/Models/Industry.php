@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Locale;
 use App\Models\Concerns\HasActiveStatus;
 use App\Models\Concerns\HasFeaturedStatus;
 use App\Models\Concerns\HasSortOrder;
@@ -40,8 +41,28 @@ class Industry extends Model implements HasMedia
 
     public function translation(): HasOne
     {
+        return $this->translationFor();
+    }
+
+    public function translationVi(): HasOne
+    {
+        return $this->translationFor(Locale::Vietnamese->value);
+    }
+
+    public function translationEn(): HasOne
+    {
+        return $this->translationFor(Locale::English->value);
+    }
+
+    public function translationZh(): HasOne
+    {
+        return $this->translationFor(Locale::Chinese->value);
+    }
+
+    public function translationFor(?string $locale = null): HasOne
+    {
         return $this->hasOne(IndustryTranslation::class)
-            ->where('locale', app()->getLocale());
+            ->where('locale', $locale ?: app()->getLocale());
     }
 
     public function publishedTranslation(): HasOne

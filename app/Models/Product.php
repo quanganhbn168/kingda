@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Locale;
 use App\Models\Concerns\HasActiveStatus;
 use App\Models\Concerns\HasFeaturedStatus;
 use App\Models\Concerns\HasSortOrder;
@@ -95,6 +96,21 @@ class Product extends Model
     {
         return $this->hasOne(ProductTranslation::class)
             ->where('locale', $locale ?: app()->getLocale());
+    }
+
+    public function translationVi(): HasOne
+    {
+        return $this->translationFor(Locale::Vietnamese->value);
+    }
+
+    public function translationEn(): HasOne
+    {
+        return $this->translationFor(Locale::English->value);
+    }
+
+    public function translationZh(): HasOne
+    {
+        return $this->translationFor(Locale::Chinese->value);
     }
 
     public function displayImageUrl(?ProductTranslation $translation = null, array $collections = ['thumbnail', 'hero'], string $fallbackLocale = 'vi'): ?string

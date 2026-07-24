@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Enums\Locale;
+use App\Models\Product;
 use App\Services\Admin\ProductCategoryOptions;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
@@ -14,13 +15,13 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class ProductForm
@@ -81,38 +82,58 @@ class ProductForm
     {
         return Tab::make($locale->label())
             ->schema([
-                Repeater::make('translations_'.$locale->value)
-                    ->label($locale->label())
-                    ->relationship(
-                        'translations',
-                        modifyQueryUsing: fn (Builder $query): Builder => $query->where('locale', $locale->value),
+                Group::make(self::translationFields($locale))
+                    ->relationship(self::translationRelationship($locale))
+                    ->mutateRelationshipDataBeforeCreateUsing(
+                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
                     )
-                    ->schema(self::translationFields($locale))
-                    ->defaultItems(1)
-                    ->maxItems(1)
-                    ->minItems(1)
-                    ->addable(false)
-                    ->deletable(false)
-                    ->reorderable(false)
-                    ->cloneable(false)
-                    ->itemHeaders(false)
-                    ->hiddenLabel()
-                    ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
-                        ...$data,
-                        'locale' => $locale->value,
-                    ])
-                    ->mutateRelationshipDataBeforeSaveUsing(fn (array $data): array => [
-                        ...$data,
-                        'locale' => $locale->value,
-                    ])
+                    ->mutateRelationshipDataBeforeSaveUsing(
+                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
+                    )
                     ->columnSpanFull(),
+
+                Section::make('Nội dung chi tiết')
+                    ->schema([
+                        RichEditor::make(self::translationContentField($locale))
+                            ->label('Nội dung')
+                            ->afterStateHydrated(
+                                fn (RichEditor $component, ?Product $record): mixed => $component->state(
+                                    $record?->translationFor($locale->value)->value('content'),
+                                ),
+                            )
+                            ->dehydrated(false)
+                            ->columnSpanFull(),
+                    ]),
             ]);
+    }
+
+    private static function translationRelationship(Locale $locale): string
+    {
+        return match ($locale) {
+            Locale::Vietnamese => 'translationVi',
+            Locale::English => 'translationEn',
+            Locale::Chinese => 'translationZh',
+        };
+    }
+
+    private static function translationData(array $data, Get $get, Locale $locale): array
+    {
+        return [
+            ...$data,
+            'locale' => $locale->value,
+            'content' => $get(self::translationContentField($locale)),
+        ];
+    }
+
+    private static function translationContentField(Locale $locale): string
+    {
+        return 'content_' . $locale->value;
     }
 
     private static function translationFields(Locale $locale): array
     {
         return [
-            Section::make('Nội dung')
+            Section::make('Thông tin bản dịch')
                 ->columns(2)
                 ->schema([
                     Hidden::make('locale')
@@ -142,9 +163,6 @@ class ProductForm
                         ->maxLength(255),
                     Textarea::make('description')
                         ->label('Mô tả ngắn')
-                        ->columnSpanFull(),
-                    RichEditor::make('content')
-                        ->label('Nội dung')
                         ->columnSpanFull(),
                     KeyValue::make('specifications')
                         ->label('Thông số')
