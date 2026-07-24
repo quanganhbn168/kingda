@@ -110,7 +110,7 @@ class PostForm
                             ->label('Nội dung')
                             ->afterStateHydrated(
                                 fn (RichEditor $component, ?Post $record): mixed => $component->state(
-                                    $record?->translationFor($locale->value)->value('content')
+                                    $record?->{self::translationRelationship($locale)}?->content,
                                 ),
                             )
                             ->dehydrated(false)
@@ -130,7 +130,7 @@ class PostForm
 
     private static function translationContentField(Locale $locale): string
     {
-        return 'content_' . $locale->value;
+        return 'content_'.$locale->value;
     }
 
     private static function translationData(array $data, Get $get, Locale $locale): array
@@ -138,7 +138,7 @@ class PostForm
         return [
             ...$data,
             'locale' => $locale->value,
-            'content' => $get(self::translationContentField($locale)),
+            'content' => $get('data.'.self::translationContentField($locale), true),
         ];
     }
 
