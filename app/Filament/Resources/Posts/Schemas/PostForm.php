@@ -6,8 +6,8 @@ use App\Enums\CategoryType;
 use App\Enums\Locale;
 use App\Enums\MetaRobots;
 use App\Models\Category;
+use App\Models\Post;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -19,9 +19,9 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class PostForm
@@ -92,38 +92,41 @@ class PostForm
 
     private static function translationTab(Locale $locale): Tab
     {
-        $isVietnamese = $locale === Locale::Vietnamese;
-
         return Tab::make($locale->label())
             ->schema([
-                Repeater::make('translations_'.$locale->value)
-                    ->label($locale->label())
-                    ->relationship(
-                        'translations',
-                        modifyQueryUsing: fn (Builder $query): Builder => $query->where('locale', $locale->value),
+                Group::make(self::translationFields($locale))
+                    ->relationship(self::translationRelationship($locale))
+                    ->mutateRelationshipDataBeforeCreateUsing(
+                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
                     )
-                    ->schema(self::translationFields($locale))
-                    ->columns(2)
-                    ->defaultItems($isVietnamese ? 1 : 0)
-                    ->maxItems(1)
-                    ->minItems($isVietnamese ? 1 : 0)
-                    ->addable(! $isVietnamese)
-                    ->addActionLabel('Thêm bản dịch '.$locale->label())
-                    ->deletable(! $isVietnamese)
-                    ->reorderable(false)
-                    ->cloneable(false)
-                    ->itemHeaders(false)
-                    ->hiddenLabel()
-                    ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
-                        ...$data,
-                        'locale' => $locale->value,
-                    ])
-                    ->mutateRelationshipDataBeforeSaveUsing(fn (array $data): array => [
-                        ...$data,
-                        'locale' => $locale->value,
-                    ])
+                    ->mutateRelationshipDataBeforeSaveUsing(
+                        fn (array $data, Get $get): array => self::translationData($data, $get, $locale),
+                    )
                     ->columnSpanFull(),
             ]);
+    }
+
+    private static function translationRelationship(Locale $locale): string
+    {
+        return match ($locale) {
+            Locale::Vietnamese => 'translationVi',
+            Locale::English => 'translationEn',
+            Locale::Chinese => 'translationZh',
+        };
+    }
+
+    private static function translationData(array $data, Get $get, Locale $locale): array
+    {
+        return [
+            ...$data,
+            'locale' => $locale->value,
+            'content' => $get(self::translationContentField($locale)),
+        ];
+    }
+
+    private static function translationContentField(Locale $locale): string
+    {
+        return 'content_'.$locale->value;
     }
 
     private static function translationFields(Locale $locale): array
@@ -134,7 +137,7 @@ class PostForm
                 ->required(),
             TextInput::make('title')
                 ->label('Tiêu đề')
-                ->required()
+                ->required(fn (): bool => $locale === Locale::Vietnamese)
                 ->live(onBlur: true)
                 ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug((string) $state)))
                 ->partiallyRenderComponentsAfterStateUpdated(['slug'])
@@ -147,9 +150,15 @@ class PostForm
             Textarea::make('description')
                 ->label('Mô tả ngắn')
                 ->columnSpanFull(),
-            RichEditor::make('content')
+            RichEditor::make(self::translationContentField($locale))
                 ->label('Nội dung')
+                ->afterStateHydrated(
+                    fn (RichEditor $component, ?Post $record): mixed => $component->state(
+                        $record?->translationFor($locale->value)->value('content'),
+                    ),
+                )
                 ->floatingToolbars(null)
+                ->dehydrated(false)
                 ->columnSpanFull(),
             SpatieMediaLibraryFileUpload::make('thumbnail')
                 ->label('Ảnh đại diện')
@@ -163,20 +172,24 @@ class PostForm
                 ->disk('public')
                 ->visibility('public')
                 ->image(),
-            TextInput::make('seo_title')
-                ->label('SEO title')
-                ->maxLength(255)
-                ->columnSpanFull(),
-            Textarea::make('seo_description')
-                ->label('SEO description')
-                ->columnSpanFull(),
-            Select::make('meta_robots')
-                ->label('Hiển thị trên công cụ tìm kiếm')
-                ->options(MetaRobots::options())
-                ->default(MetaRobots::IndexFollow->value)
-                ->required()
-                ->native(false)
-                ->selectablePlaceholder(false)
+            Section::make('SEO')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('seo_title')
+                        ->label('SEO title')
+                        ->maxLength(255),
+                    Textarea::make('seo_description')
+                        ->label('SEO description')
+                        ->rows(3),
+                    Select::make('meta_robots')
+                        ->label('Hiển thị trên công cụ tìm kiếm')
+                        ->options(MetaRobots::options())
+                        ->default(MetaRobots::IndexFollow->value)
+                        ->required()
+                        ->native(false)
+                        ->selectablePlaceholder(false)
+                        ->columnSpanFull(),
+                ])
                 ->columnSpanFull(),
         ];
     }
